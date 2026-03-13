@@ -1026,11 +1026,12 @@ class MainWindow(QMainWindow):
     IDX_EMPTY   = 3
     IDX_LOADING = 4
 
-    def __init__(self, cfg: Dict[str, Any]) -> None:
+    def __init__(self, cfg: Dict[str, Any], start_index: Optional[int] = None) -> None:
         """Initialise the main window.
 
         Args:
             cfg: Full config dict (db_path required).
+            start_index: Optional 0-based index to start at. If None, starts at newest haiku.
         """
         super().__init__()
         self._cfg = cfg
@@ -1038,6 +1039,7 @@ class MainWindow(QMainWindow):
         self._db_writer = DatabaseWriter(cfg["db_path"])
         self._haikus: List[Dict[str, Any]] = []
         self._haiku_idx: int = 0
+        self._start_index = start_index
         self._current_episode_number: int = 0
         self._pool = QThreadPool()
         self._build_ui()
@@ -1079,7 +1081,12 @@ class MainWindow(QMainWindow):
         if not self._haikus:
             self._stack.setCurrentIndex(self.IDX_EMPTY)
         else:
-            self._haiku_idx = min(self._haiku_idx, len(self._haikus) - 1)
+            # If start_index is set (from commit flow), use it; otherwise use newest haiku
+            if self._start_index is not None:
+                self._haiku_idx = min(self._start_index, len(self._haikus) - 1)
+                self._start_index = None  # Clear after first load
+            else:
+                self._haiku_idx = len(self._haikus) - 1  # Start at newest
             self._load_haiku()
             self._show_haiku_view()
 

@@ -6,24 +6,25 @@ This is a placeholder - the actual viewer code is migrated from codeQT.py.
 
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from codestory.core.logging import get_logger
 
 LOGGER = get_logger(__name__)
 
 
-def launch_app(config: Dict[str, Any]) -> int:
+def launch_app(config: Dict[str, Any], start_index: Optional[int] = None) -> int:
     """
     Launch the PyQt6 viewer.
 
     Args:
         config: Configuration dictionary.
+        start_index: Optional 0-based index to start at. If None, starts at newest haiku.
 
     Returns:
         Exit code.
     """
-    LOGGER.info("Launching PyQt6 viewer")
+    LOGGER.info("Launching PyQt6 viewer (start_index=%s)", start_index)
 
     try:
         # Import the actual viewer from the old location
@@ -32,8 +33,16 @@ def launch_app(config: Dict[str, Any]) -> int:
         if str(codestory_root) not in sys.path:
             sys.path.insert(0, str(codestory_root))
         
-        from codeQT import launch_app as old_launch_app
-        return old_launch_app(config)
+        from codeQT import MainWindow, QApplication
+        from PyQt6.QtWidgets import QApplication
+        import sys
+        
+        app = QApplication.instance() or QApplication(sys.argv)
+        
+        from codeQT import MainWindow
+        window = MainWindow(config, start_index=start_index)
+        window.showFullScreen()
+        return app.exec()
     except ImportError as e:
         LOGGER.error("Viewer not available: %s", e)
         print("Error: PyQt6 viewer not available.")

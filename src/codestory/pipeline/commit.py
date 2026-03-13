@@ -161,6 +161,15 @@ async def run_commit_pipeline(
     if not commit_msg:
         return False, ""
 
+    # Stage all changes before committing
+    try:
+        subprocess.run(
+            ["git", "add", "-A"],
+            capture_output=True, cwd=repo_path, check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        LOGGER.warning("git add -A failed: %s", exc.stderr)
+
     # Execute git commit
     if not do_git_commit(repo_path, commit_msg):
         return False, ""
