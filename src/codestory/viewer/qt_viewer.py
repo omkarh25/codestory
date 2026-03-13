@@ -15,6 +15,7 @@ from PyQt6.QtCore import (
     QRunnable, QTimer, Qt, QThreadPool, QObject,
     pyqtSignal, pyqtSlot,
 )
+from PyQt6.QtCore import QPropertyAnimation, QEasingCurve, pyqtProperty, QParallelAnimationGroup
 from PyQt6.QtGui import QColor, QFont, QKeyEvent, QPalette
 from PyQt6.QtWidgets import (
     QApplication, QFrame, QHBoxLayout, QLabel, QMainWindow,
@@ -103,6 +104,7 @@ GIT_CRIME_LEXICON_DISPLAY = {
     "hotfix": "2 AM damage control — Emergency. No witnesses.",
     "init": "The origin — The first sin.",
     "wip": "The unfinished crime — Left at the scene, half-done",
+    "now": "The still point — Before the next crime",
 }
 
 
@@ -179,6 +181,22 @@ class DatabaseReader:
             LOGGER.error("DB read error (episodes): %s", exc)
             return []
 
+    def load_moments(self) -> List[Dict[str, Any]]:
+        """Load all Now moments ordered by capture time (oldest first)."""
+        if not Path(self._db_path).exists():
+            return []
+        try:
+            conn = sqlite3.connect(self._db_path)
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                "SELECT * FROM now_moments ORDER BY captured_at ASC"
+            ).fetchall()
+            conn.close()
+            return [dict(row) for row in rows]
+        except sqlite3.OperationalError as exc:
+            LOGGER.error("DB read error (moments): %s", exc)
+            return []
+
 
 class DatabaseWriter:
     """Handles flag toggle writes to the database."""
@@ -234,6 +252,32 @@ class DatabaseWriter:
             return new_val
         except sqlite3.Error as exc:
             LOGGER.error("DB episode flag write error: %s", exc)
+            return -1
+
+    def toggle_moment_flag(self, moment_id: int, flag: str) -> int:
+        """Toggle a flag on a Now moment row."""
+        if flag not in ("is_hearted", "is_starred", "is_saved"):
+            return -1
+        try:
+            conn = sqlite3.connect(self._db_path)
+            row = conn.execute(
+                f"SELECT {flag} FROM now_moments WHERE id = ?",
+                (moment_id,),
+            ).fetchone()
+            if row is None:
+                conn.close()
+                return -1
+            new_val = 0 if row[0] else 1
+            conn.execute(
+                f"UPDATE now_moments SET {flag} = ? WHERE id = ?",
+                (new_val, moment_id),
+            )
+            conn.commit()
+            conn.close()
+            LOGGER.info("Moment %d: %s = %d", moment_id, flag, new_val)
+            return new_val
+        except sqlite3.Error as exc:
+            LOGGER.error("DB moment flag write error: %s", exc)
             return -1
 
 
@@ -711,7 +755,204 @@ class VerdictWidget(QWidget):
         self._state = HaikuState.VERDICT_READY
 
 
+# ─── Dolly Zoom Verdict for Now Moments ───────────────────────────────────────
+
+class DollyZoomVerdict(QWidget):
+    """
+    Full-screen verdict slide with dolly zoom effect for Now Moments.
+
+    The dolly zoom (Vertigo effect) creates a sense of cosmic expansion:
+    - Letter spacing increases (text stretches apart)
+    - Container margins expand outward (space breathes)
+    - Font size grows dramatically (18pt → 28pt) for impact
+    - Italic fades to bold weight for final punch
+    
+    This gives the "still point" moment that cosmic, transcendent feel.
+    """
+
+    finished = pyqtSignal()
+    go_back = pyqtSignal()
+
+    # Tuning parameters for cinematic effect
+    LETTER_SPACING_END = 8.0
+    CONTAINER_SCALE_END = 2.5
+    FONT_SIZE_START = 18
+    FONT_SIZE_END = 28
+    ANIMATION_DURATION_MS = 1800
+    PAUSE_BEFORE_ZOOM_MS = 300
+
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
+        super().__init__(parent)
+        self._state = HaikuState.IDLE
+        self._typewriter = TypewriterEffect(self)
+        self._typewriter.text_updated.connect(self._on_typewriter_update)
+        self._typewriter.finished.connect(self._on_typewriter_done)
+        
+        # Dolly zoom animatable properties
+        self._letter_spacing = 0.0
+        self._container_scale = 1.0
+        self._verdict_font_size = self.FONT_SIZE_START
+        
+        self._build_ui()
+
+    def _build_ui(self) -> None:
+        self.setStyleSheet(f"background-color: {BG_VERDICT};")
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.addStretch(2)
+
+        panel = QFrame()
+        panel.setObjectName("verdict_panel")
+        panel.setStyleSheet(
+            f"background-color: {BG_CARD}; border: 1px solid {DIVIDER_COL}; border-radius: 8px;"
+        )
+        panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self._panel = panel
+        pl = QVBoxLayout(panel)
+        pl.setContentsMargins(60, 50, 60, 50)
+        pl.setSpacing(20)
+        self._panel_layout = pl
+
+        self._lbl_title = _label("", TEXT_VERDICT_L, 16, bold=True)
+        # Start italic, will animate to bold
+        self._lbl_body = _label("", TEXT_VERDICT_B, self.FONT_SIZE_START, italic=True, align=Qt.AlignmentFlag.AlignCenter)
+        self._lbl_body.hide()
+        pl.addWidget(self._lbl_title)
+        pl.addWidget(self._lbl_body)
+
+        container = QHBoxLayout()
+        container.setContentsMargins(80, 0, 80, 0)
+        self._container_layout = container
+        container.addWidget(panel)
+        outer.addLayout(container)
+        outer.addStretch(3)
+
+        hint = QWidget()
+        hint.setFixedHeight(30)
+        hint.setStyleSheet(f"background: {BG_CARD};")
+        hl = QHBoxLayout(hint)
+        hl.setContentsMargins(20, 0, 20, 0)
+        hl.addWidget(_label(
+            "SPACE next moment   ← back to acts   L ♥   S ⭐   B 💾   Q quit",
+            TEXT_HASH, 9, align=Qt.AlignmentFlag.AlignCenter,
+        ))
+        outer.addWidget(hint)
+
+    # --- Animatable property: letter spacing ---
+    def get_letter_spacing(self) -> float:
+        return self._letter_spacing
+
+    def set_letter_spacing(self, value: float) -> None:
+        self._letter_spacing = value
+        font = self._lbl_body.font()
+        font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, value)
+        self._lbl_body.setFont(font)
+
+    letterSpacing = pyqtProperty(float, get_letter_spacing, set_letter_spacing)
+
+    # --- Animatable property: container scale ---
+    def get_container_scale(self) -> float:
+        return self._container_scale
+
+    def set_container_scale(self, value: float) -> None:
+        self._container_scale = value
+        # Margins expand outward
+        margin = int(80 * value)
+        self._container_layout.setContentsMargins(margin, 0, margin, 0)
+
+    containerScale = pyqtProperty(float, get_container_scale, set_container_scale)
+
+    # --- Animatable property: verdict font size ---
+    def get_verdict_font_size(self) -> int:
+        return self._verdict_font_size
+
+    def set_verdict_font_size(self, value: int) -> None:
+        self._verdict_font_size = value
+        font = self._lbl_body.font()
+        font.setPointSize(value)
+        # Transition from italic to bold as size grows
+        if value >= self.FONT_SIZE_END:
+            font.setItalic(False)
+            font.setWeight(QFont.Weight.Bold)
+        else:
+            font.setItalic(True)
+            font.setWeight(QFont.Weight.Normal)
+        self._lbl_body.setFont(font)
+
+    verdictFontSize = pyqtProperty(int, get_verdict_font_size, set_verdict_font_size)
+
+    def _play_dolly_zoom(self) -> None:
+        """Play the dolly zoom animation."""
+        # Letter spacing: 0 → 8 (text stretches apart)
+        anim_spacing = QPropertyAnimation(self, b"letterSpacing")
+        anim_spacing.setDuration(self.ANIMATION_DURATION_MS)
+        anim_spacing.setStartValue(0.0)
+        anim_spacing.setEndValue(self.LETTER_SPACING_END)
+        anim_spacing.setEasingCurve(QEasingCurve.Type.OutCubic)
+
+        # Container: 1.0 → 2.5 (space expands outward)
+        anim_scale = QPropertyAnimation(self, b"containerScale")
+        anim_scale.setDuration(self.ANIMATION_DURATION_MS)
+        anim_scale.setStartValue(1.0)
+        anim_scale.setEndValue(self.CONTAINER_SCALE_END)
+        anim_scale.setEasingCurve(QEasingCurve.Type.OutCubic)
+
+        # Font size: 18 → 28 (grows for dramatic impact)
+        anim_font = QPropertyAnimation(self, b"verdictFontSize")
+        anim_font.setDuration(self.ANIMATION_DURATION_MS)
+        anim_font.setStartValue(self.FONT_SIZE_START)
+        anim_font.setEndValue(self.FONT_SIZE_END)
+        anim_font.setEasingCurve(QEasingCurve.Type.OutCubic)
+
+        # Run all simultaneously
+        self._dolly_group = QParallelAnimationGroup()
+        self._dolly_group.addAnimation(anim_spacing)
+        self._dolly_group.addAnimation(anim_scale)
+        self._dolly_group.addAnimation(anim_font)
+        self._dolly_group.start()
+        LOGGER.debug("Dolly zoom started for Now moment verdict (font 18->28, italic->bold)")
+
+    def show_verdict(self, haiku: Dict[str, Any]) -> None:
+        """Show the verdict with typewriter, then dolly zoom."""
+        # Reset dolly zoom state
+        self._letter_spacing = 0.0
+        self._container_scale = 1.0
+        self._verdict_font_size = self.FONT_SIZE_START
+        self._container_layout.setContentsMargins(80, 0, 80, 0)
+        
+        # Reset font to italic small
+        font = self._lbl_body.font()
+        font.setPointSize(self.FONT_SIZE_START)
+        font.setItalic(True)
+        font.setWeight(QFont.Weight.Normal)
+        self._lbl_body.setFont(font)
+        
+        self._state = HaikuState.TYPING_VERDICT
+        self._lbl_title.setText("")
+        self._lbl_body.hide()
+        self._lbl_body.setText(f'"{haiku.get("verdict", "")}"')
+        self._typewriter.start("🔑  VERDICT")
+
+    def advance(self) -> None:
+        if self._typewriter.is_running():
+            self._typewriter.skip()
+        elif self._state == HaikuState.VERDICT_READY:
+            self.finished.emit()
+
+    def _on_typewriter_update(self, text: str) -> None:
+        self._lbl_title.setText(text)
+
+    def _on_typewriter_done(self) -> None:
+        """After typewriter finishes, show body then trigger dolly zoom after pause."""
+        self._lbl_body.show()
+        self._state = HaikuState.VERDICT_READY
+        # Trigger dolly zoom after brief pause for cinematic effect
+        QTimer.singleShot(self.PAUSE_BEFORE_ZOOM_MS, self._play_dolly_zoom)
+
+
+
 # ─── Episode viewer ───────────────────────────────────────────────────────────
+
 
 class EpisodeCardWidget(QFrame):
     """A single episode card in the scrollable episode viewer."""
@@ -866,31 +1107,104 @@ class LoadingWidget(QWidget):
         self._lbl.setText(msg)
 
 
+# ─── Moment adapter ───────────────────────────────────────────────────────────
+
+def _adapt_moment_to_haiku(moment: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Adapt a now_moments row into a haiku-compatible dict for HaikuPlayerWidget.
+
+    Maps moment fields so the existing 3-act player renders them unchanged.
+    Uses a 'moment:<id>' fake commit_hash to route flag operations correctly.
+
+    Args:
+        moment: Row dict from now_moments table.
+
+    Returns:
+        Haiku-compatible dict loadable by HaikuPlayerWidget.load_haiku().
+    """
+    moment_id = moment.get("id", 0)
+    return {
+        "commit_hash":        f"moment:{moment_id}",   # Routed to toggle_moment_flag
+        "short_hash":         f"⚡{moment_id:04d}",
+        "commit_type":        "now",
+        "commit_msg":         moment.get("subtitle", ""),
+        "branch":             "⚡ now",
+        "author":             "MAX THE DESTROYER",
+        "commit_date":        moment.get("captured_at", ""),
+        "chronological_index": moment_id,
+        "title":              moment.get("title", f"NOW — Moment {moment_id}"),
+        "subtitle":           moment.get("subtitle", ""),
+        "act1_title":         moment.get("act1_title", ""),
+        "when_where":         moment.get("when_where", ""),
+        "act2_title":         moment.get("act2_title", ""),
+        "who_whom":           moment.get("who_whom", ""),
+        "act3_title":         moment.get("act3_title", ""),
+        "what_why":           moment.get("what_why", ""),
+        "verdict":            moment.get("verdict", ""),
+        "is_hearted":         moment.get("is_hearted", 0),
+        "is_starred":         moment.get("is_starred", 0),
+        "is_saved":           moment.get("is_saved", 0),
+        # Keep original ID for flag writes
+        "_moment_id":         moment_id,
+    }
+
+
 # ─── Main window ──────────────────────────────────────────────────────────────
 
 class MainWindow(QMainWindow):
-    """Top-level window managing all views and keyboard routing."""
+    """
+    Top-level window managing all views and keyboard routing.
+
+    Supports three primary viewing modes:
+    - Haiku chronicle  (H key) — IDX_HAIKU / IDX_VERDICT
+    - Episode acts     (E key) — IDX_EPISODE
+    - Now moments      (N key) — IDX_MOMENTS / IDX_MOMENTS_VERDICT
+    """
 
     IDX_HAIKU = 0
     IDX_VERDICT = 1
     IDX_EPISODE = 2
     IDX_EMPTY = 3
     IDX_LOADING = 4
+    IDX_MOMENTS = 5
+    IDX_MOMENTS_VERDICT = 6
 
-    def __init__(self, cfg: Dict[str, Any], start_index: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        cfg: Dict[str, Any],
+        start_index: Optional[int] = None,
+        start_moment_id: Optional[int] = None,
+    ) -> None:
+        """
+        Initialise the main window.
+
+        Args:
+            cfg: Full codeStory config dict.
+            start_index: Optional haiku index to open at launch.
+            start_moment_id: Optional moment DB id to open at launch (triggers moments mode).
+        """
         super().__init__()
         self._cfg = cfg
         self._db_reader = DatabaseReader(cfg["db_path"])
         self._db_writer = DatabaseWriter(cfg["db_path"])
+
+        # Haiku state
         self._haikus: List[Dict[str, Any]] = []
         self._haiku_idx: int = 0
         self._start_index = start_index
+
+        # Moments state
+        self._moments: List[Dict[str, Any]] = []
+        self._moment_idx: int = 0
+        self._start_moment_id = start_moment_id
+
         self._current_episode_number: int = 0
         self._pool = QThreadPool()
         self._build_ui()
         self._refresh_data()
 
     def _build_ui(self) -> None:
+        """Build the QStackedWidget with all viewer panels."""
         self.setWindowTitle("codeStory — The Chronicles")
         self.setMinimumSize(900, 600)
         self.setStyleSheet(f"background:{BG_DARK};")
@@ -899,29 +1213,73 @@ class MainWindow(QMainWindow):
         self._stack = QStackedWidget()
         self._stack.setStyleSheet(f"background:{BG_DARK};")
 
+        # Haiku panels (indices 0, 1)
         self._haiku_player = HaikuPlayerWidget()
         self._verdict_w = VerdictWidget()
+
+        # Shared panels (indices 2–4)
         self._episode_view = EpisodeViewerWidget()
         self._empty_w = EmptyStateWidget()
         self._loading_w = LoadingWidget()
 
-        self._stack.addWidget(self._haiku_player)
-        self._stack.addWidget(self._verdict_w)
-        self._stack.addWidget(self._episode_view)
-        self._stack.addWidget(self._empty_w)
-        self._stack.addWidget(self._loading_w)
+        # Moments panels (indices 5, 6) — separate player to avoid state conflicts
+        self._moments_player = HaikuPlayerWidget()
+        self._moments_verdict_w = DollyZoomVerdict()  # Cosmi
+
+
+        for widget in (
+            self._haiku_player,      # 0
+            self._verdict_w,         # 1
+            self._episode_view,      # 2
+            self._empty_w,           # 3
+            self._loading_w,         # 4
+            self._moments_player,    # 5
+            self._moments_verdict_w, # 6
+        ):
+            self._stack.addWidget(widget)
 
         self.setCentralWidget(self._stack)
 
+        # Haiku wiring
         self._haiku_player.request_verdict.connect(self._show_verdict)
         self._verdict_w.finished.connect(self._next_haiku)
         self._verdict_w.go_back.connect(self._show_haiku_view)
 
+        # Moments wiring
+        self._moments_player.request_verdict.connect(self._show_moment_verdict)
+        self._moments_verdict_w.finished.connect(self._next_moment)
+        self._moments_verdict_w.go_back.connect(self._show_moment_view)
+
     def _refresh_data(self) -> None:
+        """Reload all data from the DB and update all views."""
         self._haikus = self._db_reader.load_haikus()
+        self._moments = self._db_reader.load_moments()
         episodes = self._db_reader.load_episodes()
         self._episode_view.load_episodes(episodes)
 
+        LOGGER.info(
+            "Refreshed: %d haikus, %d moments, %d episodes",
+            len(self._haikus), len(self._moments), len(episodes),
+        )
+
+        # If launched via --now, go straight to moments view
+        if self._start_moment_id is not None:
+            target_id = self._start_moment_id
+            self._start_moment_id = None
+            # Find the moment's index by id
+            for i, m in enumerate(self._moments):
+                if m.get("id") == target_id:
+                    self._moment_idx = i
+                    break
+            else:
+                self._moment_idx = max(0, len(self._moments) - 1)
+
+            if self._moments:
+                self._load_moment()
+                self._show_moment_view()
+                return
+
+        # Default: show haiku view (or empty state)
         if not self._haikus:
             self._stack.setCurrentIndex(self.IDX_EMPTY)
         else:
@@ -933,33 +1291,89 @@ class MainWindow(QMainWindow):
             self._load_haiku()
             self._show_haiku_view()
 
+    # ── Haiku navigation ──────────────────────────────────────────────────────
+
     def _load_haiku(self) -> None:
+        """Load the current haiku into the player widget."""
         if not self._haikus:
             return
         h = self._haikus[self._haiku_idx]
         self._haiku_player.load_haiku(h, self._haiku_idx + 1, len(self._haikus))
 
     def _show_haiku_view(self) -> None:
+        """Switch stack to the haiku player panel."""
         self._stack.setCurrentIndex(self.IDX_HAIKU)
         self.setFocus()
 
     def _show_verdict(self, haiku: Dict[str, Any]) -> None:
+        """Show the verdict screen for a haiku."""
         self._stack.setCurrentIndex(self.IDX_VERDICT)
         self._verdict_w.show_verdict(haiku)
 
     def _next_haiku(self, step: int = 1) -> None:
+        """Advance to the next haiku (wraps around)."""
         if self._haikus:
             self._haiku_idx = (self._haiku_idx + step) % len(self._haikus)
             self._load_haiku()
             self._show_haiku_view()
 
     def _prev_haiku(self, step: int = 1) -> None:
+        """Go back to the previous haiku (wraps around)."""
         if self._haikus:
             self._haiku_idx = (self._haiku_idx - step) % len(self._haikus)
             self._load_haiku()
             self._show_haiku_view()
 
+    # ── Moments navigation ────────────────────────────────────────────────────
+
+    def _load_moment(self) -> None:
+        """Adapt the current moment and load it into the moments player."""
+        if not self._moments:
+            return
+        m = self._moments[self._moment_idx]
+        adapted = _adapt_moment_to_haiku(m)
+        self._moments_player.load_haiku(adapted, self._moment_idx + 1, len(self._moments))
+        LOGGER.debug("Moments player loaded: idx=%d id=%s", self._moment_idx, m.get("id"))
+
+    def _show_moment_view(self) -> None:
+        """Switch stack to the moments player panel."""
+        self._stack.setCurrentIndex(self.IDX_MOMENTS)
+        self.setFocus()
+
+    def _show_moment_verdict(self, haiku: Dict[str, Any]) -> None:
+        """Show the verdict screen for the current moment."""
+        self._stack.setCurrentIndex(self.IDX_MOMENTS_VERDICT)
+        self._moments_verdict_w.show_verdict(haiku)
+
+    def _next_moment(self, step: int = 1) -> None:
+        """Advance to the next Now moment (wraps around)."""
+        if self._moments:
+            self._moment_idx = (self._moment_idx + step) % len(self._moments)
+            self._load_moment()
+            self._show_moment_view()
+
+    def _prev_moment(self, step: int = 1) -> None:
+        """Go back to the previous Now moment (wraps around)."""
+        if self._moments:
+            self._moment_idx = (self._moment_idx - step) % len(self._moments)
+            self._load_moment()
+            self._show_moment_view()
+
+    def _enter_moments_mode(self) -> None:
+        """Switch to the Now moments view. Loads most recent moment if none active."""
+        if not self._moments:
+            LOGGER.info("No moments yet — run 'codestory --now' first")
+            return
+        # Stay on current moment index if already browsing; else go to latest
+        if self._stack.currentIndex() not in (self.IDX_MOMENTS, self.IDX_MOMENTS_VERDICT):
+            self._moment_idx = len(self._moments) - 1
+        self._load_moment()
+        self._show_moment_view()
+
+    # ── Pipeline ──────────────────────────────────────────────────────────────
+
     def _run_pipeline(self, pipeline: str) -> None:
+        """Kick off a haiku or episode generation worker thread."""
         self._loading_w.set_message(
             "⏳  Generating haikus..." if pipeline == "haiku" else "⏳  Generating episode..."
         )
@@ -980,25 +1394,50 @@ class MainWindow(QMainWindow):
         self._loading_w.set_message(f"❌  {error[:80]}")
         QTimer.singleShot(3000, self._refresh_data)
 
-    def _toggle_flag(self, flag: str) -> None:
-        idx = self._stack.currentIndex()
+    # ── Flag handling ─────────────────────────────────────────────────────────
 
-        if idx in (self.IDX_HAIKU, self.IDX_VERDICT):
+    def _toggle_flag(self, flag: str) -> None:
+        """
+        Toggle a heart/star/save flag for the currently visible item.
+
+        Routes to the correct DB writer depending on whether we are in
+        haiku mode or moments mode.
+        """
+        idx = self._stack.currentIndex()
+        icon = {"is_hearted": "♥", "is_starred": "⭐", "is_saved": "💾"}.get(flag, "")
+
+        if idx in (self.IDX_MOMENTS, self.IDX_MOMENTS_VERDICT):
+            # Flag the current moment
+            commit_hash = self._moments_player.get_commit_hash() or ""
+            if commit_hash.startswith("moment:") and self._moments:
+                moment_id = int(commit_hash.split(":")[1])
+                new_val = self._db_writer.toggle_moment_flag(moment_id, flag)
+                if new_val >= 0:
+                    self._moments[self._moment_idx][flag] = new_val
+                    self._moments_player.refresh_flags()
+                    LOGGER.info("Moment flag %s %s for id=%d", icon,
+                                "added" if new_val else "removed", moment_id)
+
+        elif idx in (self.IDX_HAIKU, self.IDX_VERDICT):
+            # Flag the current haiku
             commit_hash = self._haiku_player.get_commit_hash()
             if commit_hash and self._haikus:
                 new_val = self._db_writer.toggle_haiku_flag(commit_hash, flag)
                 self._haikus[self._haiku_idx][flag] = new_val
                 self._haiku_player.refresh_flags()
-                icon = {"is_hearted": "♥", "is_starred": "⭐", "is_saved": "💾"}.get(flag, "")
-                status = "added" if new_val else "removed"
-                LOGGER.info("Flag %s %s for haiku %s", icon, status, commit_hash[:7])
+                LOGGER.info("Haiku flag %s %s for %s", icon,
+                            "added" if new_val else "removed", commit_hash[:7])
+
+    # ── Keyboard routing ──────────────────────────────────────────────────────
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
+        """Handle all keyboard navigation and commands."""
         key = event.key()
         mods = event.modifiers()
         idx = self._stack.currentIndex()
         is_cmd = bool(mods & Qt.KeyboardModifier.ControlModifier)
 
+        # ── Global commands ────────────────────────────────────────────────
         if key in (Qt.Key.Key_Q, Qt.Key.Key_Escape):
             QApplication.quit()
             return
@@ -1016,11 +1455,15 @@ class MainWindow(QMainWindow):
             self._refresh_data()
             return
 
+        # ── View switching ─────────────────────────────────────────────────
         if key == Qt.Key.Key_H and self._haikus:
             self._show_haiku_view()
             return
         if key == Qt.Key.Key_E:
             self._stack.setCurrentIndex(self.IDX_EPISODE)
+            return
+        if key == Qt.Key.Key_N:
+            self._enter_moments_mode()
             return
         if key == Qt.Key.Key_G:
             self._run_pipeline("haiku")
@@ -1035,6 +1478,7 @@ class MainWindow(QMainWindow):
             self.showNormal() if self.isFullScreen() else self.showFullScreen()
             return
 
+        # ── Flags ─────────────────────────────────────────────────────────
         if key == Qt.Key.Key_L:
             self._toggle_flag("is_hearted")
             return
@@ -1045,7 +1489,9 @@ class MainWindow(QMainWindow):
             self._toggle_flag("is_saved")
             return
 
+        # ── Per-view navigation ────────────────────────────────────────────
         nav_step = 5 if event.isAutoRepeat() else 1
+
         if idx == self.IDX_HAIKU:
             if key == Qt.Key.Key_Space:
                 self._haiku_player.advance()
@@ -1053,11 +1499,27 @@ class MainWindow(QMainWindow):
                 self._next_haiku(nav_step)
             elif key == Qt.Key.Key_Left:
                 self._prev_haiku(nav_step)
+
         elif idx == self.IDX_VERDICT:
             if key == Qt.Key.Key_Space:
                 self._verdict_w.advance()
             elif key == Qt.Key.Key_Left:
                 self._show_haiku_view()
+
+        elif idx == self.IDX_MOMENTS:
+            if key == Qt.Key.Key_Space:
+                self._moments_player.advance()
+            elif key == Qt.Key.Key_Right:
+                self._next_moment(nav_step)
+            elif key == Qt.Key.Key_Left:
+                self._prev_moment(nav_step)
+
+        elif idx == self.IDX_MOMENTS_VERDICT:
+            if key == Qt.Key.Key_Space:
+                self._moments_verdict_w.advance()
+            elif key == Qt.Key.Key_Left:
+                self._show_moment_view()
+
         else:
             if key == Qt.Key.Key_Space and self._haikus:
                 self._show_haiku_view()
@@ -1065,10 +1527,19 @@ class MainWindow(QMainWindow):
         super().keyPressEvent(event)
 
 
-# ─── Public entry point ───────────────────────────────────────────────────────
+# ─── Public entry points ──────────────────────────────────────────────────────
 
 def launch_app(cfg: Dict[str, Any], start_index: Optional[int] = None) -> int:
-    """Launch the codeStory PyQt6 application in fullscreen."""
+    """
+    Launch the codeStory PyQt6 viewer in fullscreen.
+
+    Args:
+        cfg: Full codeStory config dict.
+        start_index: Optional haiku index to open at launch.
+
+    Returns:
+        Application exit code.
+    """
     LOGGER.info("Launching codeStory viewer — db=%s", cfg.get("db_path"))
 
     app = QApplication.instance() or QApplication(sys.argv)
@@ -1081,5 +1552,35 @@ def launch_app(cfg: Dict[str, Any], start_index: Optional[int] = None) -> int:
     app.setPalette(palette)
 
     window = MainWindow(cfg, start_index=start_index)
+    window.showFullScreen()
+    return app.exec()
+
+
+def launch_app_now(cfg: Dict[str, Any], moment_id: Optional[int] = None) -> int:
+    """
+    Launch the codeStory viewer in Now-moments mode.
+
+    Opens directly to the Now moments view, navigated to the given moment_id
+    (or to the most recent moment if moment_id is None).
+
+    Args:
+        cfg: Full codeStory config dict.
+        moment_id: DB id of the moment to display first.
+
+    Returns:
+        Application exit code.
+    """
+    LOGGER.info("Launching codeStory viewer in NOW mode — moment_id=%s", moment_id)
+
+    app = QApplication.instance() or QApplication(sys.argv)
+
+    palette = QPalette()
+    palette.setColor(QPalette.ColorRole.Window, QColor(BG_DARK))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(TEXT_WHITE))
+    palette.setColor(QPalette.ColorRole.Base, QColor(BG_CARD))
+    palette.setColor(QPalette.ColorRole.Text, QColor(TEXT_BODY))
+    app.setPalette(palette)
+
+    window = MainWindow(cfg, start_moment_id=moment_id)
     window.showFullScreen()
     return app.exec()
