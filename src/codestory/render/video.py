@@ -26,27 +26,39 @@ def render_all(config: Dict[str, Any]) -> List[str]:
     Render all unrendered haikus and episodes to video.
 
     Args:
-        config: Configuration dictionary.
+        config: Configuration dictionary (must include db_path, yt_output_dir, etc.).
 
     Returns:
         List of rendered video paths.
     """
-    LOGGER.info("Running video rendering pipeline")
+    LOGGER.info("Running video rendering pipeline with config: %s", config.get("db_path"))
 
     try:
         _ensure_legacy_path()
-        from ytpipeline import main as ytpipeline_main
-        # Pass clean args to ytpipeline — ignore parent CLI flags like --release_dry_run
+        from ytpipeline import main as ytpipeline_main, load_config
         import sys as _sys
+
+        # Get the db_path from config and pass it to ytpipeline
+        db_path = config.get("db_path", "tmChron.db")
+        
+        # Build args with explicit db_path override
+        args = ["ytpipeline", "--all", "--db-path", db_path]
+        
+        # Also pass render profile if set
+        render_profile = config.get("render", {}).get("profile")
+        if render_profile:
+            args.extend(["--render-profile", render_profile])
+
         orig_argv = _sys.argv
         try:
-            _sys.argv = ["ytpipeline", "--all"]
+            _sys.argv = args
             exit_code = ytpipeline_main()
         finally:
             _sys.argv = orig_argv
+            
         if exit_code == 0:
             LOGGER.info("Video rendering complete")
-            return []  # ytpipeline prints its own output
+            return []
         return []
     except ImportError as exc:
         LOGGER.error("ytpipeline not available: %s", exc)

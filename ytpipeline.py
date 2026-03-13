@@ -896,6 +896,8 @@ examples:
                         help="Render all haikus and episodes")
     parser.add_argument("--max",     default=None, type=int, metavar="N",
                         help="Max haikus to render per run")
+    parser.add_argument("--db-path", default=None, metavar="PATH",
+                        help="Override database path (default: from config)")
     parser.add_argument("--list",    action="store_true",
                         help="List renderable items without rendering")
     parser.add_argument(
@@ -914,6 +916,11 @@ examples:
     )
 
     cfg = load_config()
+
+    # Apply db-path CLI override (takes precedence over config file)
+    if args.db_path:
+        cfg["db_path"] = args.db_path
+        LOGGER.info("DB path overridden to: %s", args.db_path)
 
     # Apply render-profile CLI override (takes precedence over config file)
     if args.render_profile:

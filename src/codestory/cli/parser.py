@@ -155,6 +155,24 @@ examples:
         help="Install a git post-commit hook to auto-generate haikus",
     )
 
+    # ── Release ────────────────────────────────────────────────────────────────
+    release = parser.add_argument_group("release")
+    release.add_argument(
+        "--release_dry_run",
+        action="store_true",
+        help=(
+            "Interactive Director's Cut preflight wizard — shows what would be rendered "
+            "(DB stats, render queue, BGM check, duration estimate) then lets you "
+            "[R]ender / [P]review storyboard / [C]hange profile / [Q]uit"
+        ),
+    )
+    release.add_argument(
+        "--release-version",
+        default="v0.1",
+        metavar="TAG",
+        help="Version tag for the release (default: v0.1, used with --release_dry_run)",
+    )
+
     # ── Logging ────────────────────────────────────────────────────────────────
     parser.add_argument(
         "-v", "--verbose",

@@ -48,6 +48,239 @@ from codestory.core.logging import get_logger
 LOGGER = get_logger(__name__)
 
 
+def _box(title: str, width: int = 56) -> str:
+    """Return a boxed title string for CLI output."""
+    inner = f"  {title}  "
+    pad = max(0, width - len(inner))
+    return (
+        f"╔{'═' * (len(inner) + pad)}╗\n"
+        f"║{inner}{' ' * pad}║\n"
+        f"╚{'═' * (len(inner) + pad)}╝"
+    )
+
+
+def _step(n: int, total: int, label: str) -> None:
+    """Print a numbered step header."""
+    print(f"\n\033[1;36m[{n}/{total}]\033[0m  {label}")
+    print("  " + "─" * 50)
+
+
+def run_release_dry_run(cfg: dict, version: str = "v0.1") -> int:
+    """
+    Interactive Director's Cut preflight wizard.
+
+    Walks through 6 pre-render checks and presents an action menu:
+    [R]ender  [P]review storyboard  [C]hange profile  [Q]uit
+
+    Args:
+        cfg:     Full config dict.
+        version: Release version tag (e.g. "v0.1").
+
+    Returns:
+        Exit code (0 = success / quit, 1 = error).
+    """
+    import json as _json
+    from pathlib import Path
+
+    TOTAL_STEPS = 6
+    render_profile = cfg.get("render", {}).get("profile", "short")
+
+    print("\n" + _box(f"🎬  codeStory {version} — Director's Preflight"))
+
+    # ── Step 1: DB STATUS ────────────────────────────────────────────────────
+    _step(1, TOTAL_STEPS, "📊  DB STATUS")
+    db_path = cfg.get("db_path", ".codestory/codestory.db")
+    haiku_count = episode_count = pending_count = 0
+    all_haikus = []
+    all_episodes = []
+
+    if Path(db_path).exists():
+        db = DatabaseManager(db_path)
+        haiku_count = db.get_haiku_count()
+        episode_count = db.get_episode_count()
+        pending_count = db.get_pending_haiku_count()
+        all_haikus = db.get_all_haikus()
+        all_episodes = db.get_all_episodes()
+    else:
+        print(f"  ⚠  No DB found at {db_path}")
+        print("  Run: codestory --init && codestory --generate-haikus")
+        return 0
+
+    print(f"  Haikus:    {haiku_count} total  ({haiku_count - pending_count} compiled, {pending_count} pending)")
+    print(f"  Episodes:  {episode_count}")
+
+    # Check for storyboards
+    assets_dir = Path(cfg.get("output_dir", ".codestory/assets"))
+    sb_dir = assets_dir / "storyboards"
+    storyboard_files = sorted(sb_dir.glob("storyboard_episode_*.json")) if sb_dir.exists() else []
+    latest_sb = None
+    if storyboard_files:
+        latest_sb_path = storyboard_files[-1]
+        try:
+            latest_sb = _json.loads(latest_sb_path.read_text())
+            n_shots = latest_sb.get("total_shots", "?")
+            est_dur = latest_sb.get("estimated_duration_s", "?")
+            gen_by  = latest_sb.get("generated_by", "?")
+            print(f"  Storyboard: ✓ {latest_sb_path.name}  ({n_shots} shots, ~{est_dur}s, by {gen_by})")
+        except Exception:
+            print(f"  Storyboard: ✗ could not read {latest_sb_path.name}")
+    else:
+        print("  Storyboard: — (run --generate-storyboard to create one)")
+
+    # ── Step 2: RENDER QUEUE ─────────────────────────────────────────────────
+    _step(2, TOTAL_STEPS, "🎞   RENDER QUEUE")
+    yt_dir = Path(cfg.get("yt_shorts", {}).get("output_dir", cfg.get("yt_output_dir", ".codestory/assets/videos")))
+    # Support legacy yt_output_dir
+    if "yt_output_dir" in cfg:
+        yt_dir = Path(cfg["yt_output_dir"])
+
+    unrendered_haikus = []
+    for h in all_haikus:
+        chron = h.get("chronological_index", 0)
+        branch = (h.get("branch") or "main").replace("/", "-")
+        short = (h.get("commit_hash") or "")[:7]
+        fname = f"haiku_{chron:03d}_{branch}_{short}.mp4"
+        if not (yt_dir / fname).exists():
+            unrendered_haikus.append((h, fname))
+
+    unrendered_episodes = []
+    for ep in all_episodes:
+        ep_num = ep.get("episode_number", 0)
+        ep_fname = f"episode_{ep_num:03d}.mp4"
+        if not (yt_dir / ep_fname).exists():
+            unrendered_episodes.append((ep, ep_fname))
+
+    if not unrendered_haikus and not unrendered_episodes:
+        print("  ✓ All haikus and episodes already rendered — nothing to do.")
+        print("  (Delete existing MP4s to re-render with the new audio pipeline)")
+    else:
+        total_queue = len(unrendered_haikus) + len(unrendered_episodes)
+        print(f"  {total_queue} item(s) queued for render:")
+        # Show up to 8 haikus
+        for h, fname in unrendered_haikus[:8]:
+            commit_type = h.get("commit_type", "?")
+            title_short = (h.get("title") or "Untitled")[:45]
+            print(f"    • {fname:<40}  [{commit_type}]  {title_short}")
+        if len(unrendered_haikus) > 8:
+            print(f"    … and {len(unrendered_haikus) - 8} more haikus")
+        for ep, ep_fname in unrendered_episodes:
+            ep_title = (ep.get("title") or "Untitled")[:45]
+            print(f"    • {ep_fname:<40}  [episode]  {ep_title}")
+
+    # ── Step 3: BGM CHECK ────────────────────────────────────────────────────
+    _step(3, TOTAL_STEPS, "🎵  AUDIO CHECK")
+    audio_cfg = cfg.get("audio", {})
+    haiku_track  = audio_cfg.get("track_path", "")
+    episode_track = audio_cfg.get("episode_track_path", "")
+    volume    = audio_cfg.get("volume", 0.3)
+    fade_in   = audio_cfg.get("fade_in_s", 1.0)
+    fade_out  = audio_cfg.get("fade_out_s", 1.5)
+
+    if render_profile == "minimal":
+        print("  Profile: minimal — audio DISABLED (silent render)")
+    else:
+        ht_ok = Path(haiku_track).exists() if haiku_track else False
+        et_ok = Path(episode_track).exists() if episode_track else False
+        ht_name = Path(haiku_track).name if haiku_track else "not configured"
+        et_name = Path(episode_track).name if episode_track else "not configured"
+        ht_icon = "✓" if ht_ok else "✗"
+        et_icon = "✓" if et_ok else "✗"
+        print(f"  Haiku BGM:   {ht_icon} {ht_name}")
+        print(f"  Episode BGM: {et_icon} {et_name}")
+        print(f"  Volume: {volume}  |  Fade in: {fade_in}s  |  Fade out: {fade_out}s")
+        if not ht_ok:
+            print(f"  ⚠  Haiku track not found — will render silent. Set audio.track_path in config.")
+
+    # ── Step 4: DURATION ESTIMATE ────────────────────────────────────────────
+    _step(4, TOTAL_STEPS, "⏱   DURATION ESTIMATE")
+    slide_dur   = float(cfg.get("yt_slide_duration_s", 2.5))
+    verdict_dur = float(cfg.get("yt_verdict_duration_s", 4.0))
+    haiku_video_dur = slide_dur * 4 + verdict_dur  # 5 slides
+    episode_video_dur = (slide_dur * 2.2) * 3 + (verdict_dur * 2.0)  # 4 slides with episode timing
+
+    if latest_sb:
+        sb_dur = latest_sb.get("estimated_duration_s", 0)
+        print(f"  Storyboard:  ~{sb_dur:.0f}s total ({latest_sb.get('total_shots', 0)} shots)")
+    else:
+        total_haiku_time = len(unrendered_haikus) * haiku_video_dur
+        total_ep_time    = len(unrendered_episodes) * episode_video_dur
+        print(f"  Haiku renders: {len(unrendered_haikus)} × ~{haiku_video_dur:.1f}s = ~{total_haiku_time:.0f}s of video")
+        print(f"  Episode renders: {len(unrendered_episodes)} × ~{episode_video_dur:.1f}s = ~{total_ep_time:.0f}s of video")
+        print(f"  Total video output: ~{total_haiku_time + total_ep_time:.0f}s")
+    print(f"  Estimated render time: ~{max(1, (len(unrendered_haikus) + len(unrendered_episodes)) * 45)//60}–{max(2, (len(unrendered_haikus) + len(unrendered_episodes)) * 90)//60} min")
+
+    # ── Step 5: OUTPUT ───────────────────────────────────────────────────────
+    _step(5, TOTAL_STEPS, "📁  OUTPUT PATHS")
+    md_dir = yt_dir / "casefiles"
+    print(f"  MP4s:       {yt_dir}")
+    print(f"  Casefiles:  {md_dir}")
+    print(f"  Storyboards:{sb_dir}")
+    print(f"  Profile:    {render_profile}  {'(BGM + casefile MD)' if render_profile == 'short' else '(silent, no MD)'}")
+
+    # ── Step 6: ACTION MENU ──────────────────────────────────────────────────
+    while True:
+        _step(6, TOTAL_STEPS, "✅  ACTION")
+        print(f"  [R] Render now  (profile: {render_profile})")
+        print("  [P] Preview latest storyboard shot list")
+        print("  [C] Change render profile  (minimal ↔ short)")
+        print("  [Q] Quit — do nothing")
+        print()
+
+        try:
+            choice = input("  Your choice [R/P/C/Q]: ").strip().upper()
+        except (KeyboardInterrupt, EOFError):
+            print("\n  Aborted.")
+            return 0
+
+        if choice == "Q":
+            print("\n  Preflight complete. No render started. Run again when ready.")
+            return 0
+
+        elif choice == "P":
+            if latest_sb:
+                print("\n  ── Storyboard Shot List ─────────────────────────────")
+                for shot in latest_sb.get("shots", []):
+                    sid  = shot.get("shot_id", "?")
+                    stype = shot.get("type", "?")
+                    dur  = shot.get("duration_s", 0)
+                    title = (shot.get("title") or shot.get("ruling") or "")[:50]
+                    print(f"    {sid:<25} {stype:<12} {dur:>4.1f}s  {title}")
+                print(f"\n  Total: {latest_sb.get('estimated_duration_s', '?')}s | {latest_sb.get('total_shots', '?')} shots")
+            else:
+                print("  No storyboard found. Run: codestory --generate-storyboard")
+
+        elif choice == "C":
+            render_profile = "minimal" if render_profile == "short" else "short"
+            cfg.setdefault("render", {})["profile"] = render_profile
+            print(f"  ✓ Profile changed to: {render_profile}")
+            # Re-show audio check
+            if render_profile == "minimal":
+                print("  Audio: DISABLED (silent render)")
+            else:
+                ht_ok = Path(haiku_track).exists() if haiku_track else False
+                print(f"  Haiku BGM: {'✓' if ht_ok else '✗'} {Path(haiku_track).name if haiku_track else 'not set'}")
+
+        elif choice == "R":
+            if not unrendered_haikus and not unrendered_episodes:
+                print("\n  Nothing to render — all videos already exist.")
+                print("  Delete existing MP4s first if you want to re-render with audio.")
+                return 0
+
+            print(f"\n  🎬 Starting render ({render_profile} profile)...")
+            try:
+                from codestory.render.video import render_all
+                render_all(config=cfg)
+                print_success("Render complete!")
+            except Exception as exc:
+                print_error(f"Render failed: {exc}")
+                LOGGER.error("Release dry run render failed: %s", exc)
+                return 1
+            return 0
+
+        else:
+            print("  Unknown choice. Please enter R, P, C, or Q.")
+
+
 def main() -> int:
     """
     Main entry point for the codeStory CLI.
@@ -78,6 +311,11 @@ def main() -> int:
     if hasattr(args, "render_profile") and args.render_profile:
         cfg.setdefault("render", {})["profile"] = args.render_profile
         LOGGER.info("Render profile overridden to: %s", args.render_profile)
+
+    # ── Release dry-run wizard ─────────────────────────────────────────────
+    if getattr(args, "release_dry_run", False):
+        version = getattr(args, "release_version", "v0.1") or "v0.1"
+        return run_release_dry_run(cfg, version=version)
 
     # Handle init command
     if args.init:
