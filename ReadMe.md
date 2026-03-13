@@ -4,10 +4,16 @@
 
 **codeStory** reads your git history and turns it into a cinematic noir crime thriller — commit by commit, act by act.
 
-Powered by **LLMs** and rendered in a **PyQt6 dark UI**, each git commit becomes a 3-act case file narrated by MAX THE DESTROYER. Ten confessions become an episode. The repo becomes a story.
+Powered by **LLMs** and rendered in a **PyQt6 dark UI**, each git commit becomes a 3-act case file narrated by MAX THE DESTROY
+
+
+ER. Ten confessions become an episode. The repo becomes a story.
 
 ---
 
+https://github.com/user-attachments/assets/39187f4f-d80f-476b-a3fd-ea1d7299ce8a
+
+---
 ## What It Does
 
 ```
