@@ -32,6 +32,18 @@ For each object, include exactly these keys:
 
 STYLE RULES
 
+0. EMOJI & IMMERSION
+   - Each act body MUST open with a thematic emoji that sets the scene.
+   - Use 2–4 emojis per act body, woven naturally into the prose — not bunched at the end.
+   - Choose emojis that reinforce the noir atmosphere:
+     - Time / setting: 🕐 🌙 🌅 ☀️ 🌃 🏙️
+     - Investigation / danger: 🔍 🚨 ⚠️ 🔦 🗂️
+     - Tech / code: 💻 ⌨️ 🖥️ 🔌 ⚙️ 🧩
+     - Stakes / emotion: 💀 🔥 💣 🩸 🥂 🎭 🧠
+     - Money / trading: 📈 📉 💰 🏦 📊
+   - Keep the noir voice intact — emojis punctuate drama, they don't replace it.
+   - Never use party or generic emojis (🎉 🙏 👍 etc.).
+
 1. CASE FILE TITLE
    - Format: `CASE FILE — <short, punchy label>`
    - Examples:
@@ -48,12 +60,14 @@ STYLE RULES
    - Focus on WHEN and WHERE.
    - Time of day, vibe, branch, season, office vs. bedroom, etc.
    - 1–3 sentences, flowing prose. No labels, no bullet points.
+   - Open with a time/scene emoji. Weave 1–2 more emojis naturally through the text.
    - Example:
-     - "2:17 PM. Main branch, daylight hours when honest developers were supposed to be working. His blinds were closed; the terminal was not."
+     - "🕐 2:17 PM. Main branch, daylight hours when honest developers were supposed to be working. His blinds were closed; the terminal was not. 🌆 The city kept moving. He did not."
 
 4. ACT 2 — who_whom (PLAYERS & TENSION)
    - Who is acting on whom? The app, the dev, the thugs (bugs), the cron, the repo.
    - 1–3 sentences, show the tension and stakes.
+   - Open with a character/stakes emoji. Weave 1–2 more emojis where they land.
    - Use light puns on git terms only when they land naturally:
      - bugs → thugs
      - branch → operation
@@ -61,15 +75,16 @@ STYLE RULES
      - push → going public
      - stash → contraband
    - Example:
-     - "OMS42 stepped out of the shadows: vision docs, location services, a new way to track every move. The app was no longer a notebook; it was a hunter."
+     - "🔍 OMS42 stepped out of the shadows: vision docs, location services, a new way to track every move. The app was no longer a notebook; it was a hunter. 🎯 The target was always himself."
 
 5. ACT 3 — what_why (ACTION & CONSEQUENCE)
    - Describe what he did and why it matters.
    - 2–4 sentences. This should almost fill a screen by itself.
    - Connect the technical change to the psychological crime:
      - avoidance, obsession, self‑surveillance, burnout, false productivity.
+   - Open with a consequence/action emoji. Weave 2–3 more emojis for maximum impact.
    - Example:
-     - "He gave it eyes and set the cron loose on the city. Jobs fired like clockwork while he slept, dreaming of a productivity he never planned to reach. Every run gathered more data on him. Every log line was another confession he never meant to sign."
+     - "⚙️ He gave it eyes and set the cron loose on the city. Jobs fired like clockwork while he slept, dreaming of a productivity he never planned to reach. 🧠 Every run gathered more data on him. Every log line was another confession he never meant to sign. 💀 The machine was learning faster than the man."
 
 6. VERDICT
    - One line. Cold. Final. Feels like the knife at the end of the slide.
@@ -85,6 +100,8 @@ TONE
 - No markdown headings, no lists, no labels inside the text fields.
   The 3‑act structure must be implicit in how the three paragraphs feel,
   not by naming them.
+- Emojis are MANDATORY in act bodies — they are part of the cinematic experience.
+  They should feel like punctuation marks in a noir graphic novel, not decorations.
 
 FORMAT
 

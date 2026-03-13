@@ -583,8 +583,18 @@ class HaikuPlayerWidget(QWidget):
         for _ in range(3):
             lbl = _label("", TEXT_ACT_LABEL, 13, bold=True)
             lbl.setContentsMargins(0, 0, 0, 6)
-            body = _label("", TEXT_BODY, 14)
-            body.setContentsMargins(0, 0, 0, 26)
+            body = QLabel()
+            body.setTextFormat(Qt.TextFormat.RichText)
+            body.setWordWrap(True)
+            body.setStyleSheet(
+                f"color: {TEXT_BODY}; background: transparent; "
+                "padding-left: 14px; "
+                f"border-left: 3px solid {DIVIDER_COL};"
+            )
+            font = body.font()
+            font.setPointSize(FontManager.scale(14))
+            body.setFont(font)
+            body.setContentsMargins(0, 4, 0, 26)
             lbl.hide()
             body.hide()
             self._content.addWidget(lbl)
@@ -755,6 +765,39 @@ class HaikuPlayerWidget(QWidget):
         if idx is not None:
             self._act_widgets[idx]["label"].setText(text)
 
+    @staticmethod
+    def _act_body_html(text: str) -> str:
+        """Convert plain act body text to readable HTML with proper line spacing.
+
+        Args:
+            text: Raw act body text from LLM (may contain emojis).
+
+        Returns:
+            HTML string with line-height, paragraph spacing, and clean rendering.
+        """
+        import html as _html
+        if not text:
+            return ""
+        # Escape HTML entities but preserve emojis (they survive html.escape)
+        escaped = _html.escape(text)
+        # Split on double-newlines into paragraphs; single newlines become <br>
+        paragraphs = escaped.split("\n\n") if "\n\n" in escaped else [escaped]
+        parts = []
+        for para in paragraphs:
+            para = para.replace("\n", "<br/>")
+            parts.append(
+                f'<p style="margin:0 0 10px 0; line-height:1.7;">'
+                f'{para}</p>'
+            )
+        body_html = "".join(parts)
+        return (
+            f'<span style="'
+            f'font-size:{FontManager.scale(14)}pt; '
+            f'color:{TEXT_BODY}; '
+            f'line-height:1.7;">'
+            f'{body_html}</span>'
+        )
+
     def _on_typewriter_done(self) -> None:
         """Reveal act body text after typewriter completes."""
         if not self._haiku:
@@ -767,7 +810,8 @@ class HaikuPlayerWidget(QWidget):
         m = mapping.get(self._state)
         if m:
             idx, key, next_state = m
-            self._act_widgets[idx]["body"].setText(self._haiku.get(key, ""))
+            raw_text = self._haiku.get(key, "")
+            self._act_widgets[idx]["body"].setText(self._act_body_html(raw_text))
             self._act_widgets[idx]["body"].show()
             self._state = next_state
 
