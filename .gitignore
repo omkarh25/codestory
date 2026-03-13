@@ -4,10 +4,16 @@ llm.env
 *.env
 !llm.env.example
 
-# ─── Database (populated at runtime — not committed) ─────────────────────────
+# ─── codeStory Runtime Data (populated at runtime — not committed) ───────────
+.codestory/
 *.db
 *.sqlite
 *.sqlite3
+
+# ─── Generated Haiku/Episode Assets (regenerable) ─────────────────────────────
+Assets/haikuJSON/
+Assets/YtShorts/*.mp4
+Assets/YtShorts/*.mov
 
 # ─── Python ───────────────────────────────────────────────────────────────────
 __pycache__/

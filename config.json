@@ -1,17 +1,28 @@
 {
-    "tmChronicles": {
+    "codestory": {
         "repo_path": ".",
-        "max_haiku_per_run": 12,
-        "batch_size": 3,
-        "haiku_per_episode": 10,
-        "db_path": "tmChron.db",
-        "output_dir": "Assets/haikuJSON",
-        "haiku_provider": "anthropic",
-        "haiku_model": "claude-haiku-4-5-20251001",
-        "haiku_depth": "git_commit",
-        "episode_provider": "anthropic",
-        "episode_model": "claude-haiku-4-5-20251001",
-        "episode_depth": "git_commit",
+        "db_path": ".codestory/codestory.db",
+        "output_dir": ".codestory/assets",
+        "haiku": {
+            "provider": "anthropic",
+            "model": "claude-haiku-4-5-20251001",
+            "depth": "git_commit",
+            "max_per_run": 12,
+            "batch_size": 3
+        },
+        "episode": {
+            "provider": "anthropic",
+            "model": "claude-haiku-4-5-20251001",
+            "depth": "git_commit",
+            "haikus_per_episode": 10
+        },
+        "yt_shorts": {
+            "slide_duration": 2.5,
+            "verdict_duration": 4.0,
+            "fps": 30,
+            "resolution": "1920x1080",
+            "output_dir": ".codestory/assets/videos"
+        },
         "oldest_first": true
     }
 }
