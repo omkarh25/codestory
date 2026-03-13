@@ -160,6 +160,8 @@ disown
         args.generate_episodes,
         args.generate_ytshorts,
         args.play,
+        args.commit,
+        args.push,
     ]):
         db_path = cfg.get("db_path", ".codestory/codestory.db")
         db_exists = Path(db_path).exists()
@@ -227,6 +229,100 @@ disown
             print_error(f"Video rendering failed: {exc}")
             LOGGER.error("Video rendering failed: %s", exc)
             return 1
+
+    # ── COMMIT FLOW ─────────────────────────────────────────────────────────
+    # Handle --commit and --push with full progress display
+    if args.commit or args.push:
+        # Determine settings
+        do_push = args.push
+        # ytshorts default is True unless explicitly disabled
+        do_ytshorts = args.ytshorts if args.ytshorts is not None else True
+        
+        print("\n" + "="*60)
+        print("🎬 CODE STORY COMMIT FLOW")
+        print("="*60 + "\n")
+        
+        # Step 1: Analyze diff
+        print("📊 Analyzing git diff...")
+        from codestory.pipeline.git import has_uncommitted_changes, get_all_uncommitted_changes
+        from codestory.pipeline.commit import commit_and_push
+        
+        if not has_uncommitted_changes(cfg.get("repo_path", ".")):
+            print_warning("No uncommitted changes found. Nothing to commit.")
+            return 0
+        
+        diff = get_all_uncommitted_changes(cfg.get("repo_path", "."))
+        diff_lines = len(diff.splitlines())
+        print(f"   ✓ Found {diff_lines} lines of changes")
+        
+        # Step 2: Generate commit message
+        print("\n🤖 MAX THE DESTROYER is crafting your confession...")
+        try:
+            success, commit_hash = commit_and_push(cfg, do_push=do_push)
+        except Exception as exc:
+            print_error(f"Commit failed: {exc}")
+            LOGGER.error("Commit flow failed: %s", exc)
+            return 1
+        
+        if not success:
+            print_error("Failed to generate commit message or commit changes")
+            return 1
+        
+        print(f"\n✅ Committed: {commit_hash}")
+        
+        # Step 3: Push if requested
+        if do_push:
+            print("\n🚀 Pushing to remote...")
+            print(f"   ✓ Pushed to origin/{cfg.get('branch', 'main')}")
+        
+        # Step 4: Generate haiku for the new commit
+        print("\n🎬 Generating haiku for your confession...")
+        try:
+            from codestory.pipeline.haiku import generate_haikus
+            haiku_results = generate_haikus(config=cfg)
+            if haiku_results:
+                print(f"   ✓ Generated {len(haiku_results)} haiku(s)")
+            else:
+                print_warning("   ⚠ No new haiku generated")
+        except Exception as exc:
+            print_warning(f"   ⚠ Haiku generation skipped: {exc}")
+        
+        # Step 5: Generate YouTube Shorts in background if enabled
+        if do_ytshorts:
+            print("\n🎥 Rendering YouTube Shorts in background...")
+            try:
+                # Run in background - don't wait
+                import subprocess
+                import threading
+                
+                def run_ytshorts():
+                    try:
+                        from codestory.render.video import render_all
+                        render_all(config=cfg)
+                    except Exception as e:
+                        LOGGER.warning("YT Shorts generation failed: %s", e)
+                
+                thread = threading.Thread(target=run_ytshorts)
+                thread.daemon = True
+                thread.start()
+                print("   ✓ Background render started")
+            except Exception as e:
+                print_warning(f"   ⚠ Could not start background render: {e}")
+        
+        # Step 6: Launch viewer
+        print("\n📺 Launching PyQt6 viewer...")
+        try:
+            from codestory.viewer.qt_viewer import launch_app
+            print("\n" + "="*60)
+            print("🎬 ENJOY YOUR STORY!")
+            print("="*60 + "\n")
+            return launch_app(cfg)
+        except Exception as exc:
+            print_warning(f"   ⚠ Viewer not available: {exc}")
+            print("\n" + "="*60)
+            print("🎬 COMMIT COMPLETE!")
+            print("="*60 + "\n")
+            return 0
 
     # Viewer: launch PyQt6
     if args.play:

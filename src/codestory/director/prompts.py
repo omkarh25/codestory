@@ -25,6 +25,16 @@ Synthesise 10 git commit haikus into one devastating EPISODE ACT.
 Return ONLY a valid JSON object with keys: title, decade_summary, branch_note, max_ruling.
 """
 
+FALLBACK_COMMIT_PROMPT = """You are MAX THE DESTROYER — the merciless editor of every developer's confession.
+
+Given a git diff, generate a conventional commit message.
+Format: <type>(<scope>): <subject>
+
+Use imperative mood. Keep subject under 50 chars.
+Be dramatic but clear. No emoji.
+Return only the commit message as plain text.
+"""
+
 
 def find_director_dir() -> Optional[Path]:
     """
@@ -119,3 +129,25 @@ def load_episode_prompt() -> str:
         )
 
     return episode_prompt
+
+
+def load_commit_prompt() -> str:
+    """
+    Load MAX THE DESTROYER's commit signature from Director/CommitSignature.md.
+
+    Returns:
+        System prompt string for generating commit messages.
+    """
+    director_dir = find_director_dir()
+    if director_dir:
+        prompt_path = director_dir / "CommitSignature.md"
+        if prompt_path.exists():
+            try:
+                prompt = prompt_path.read_text(encoding="utf-8").strip()
+                LOGGER.info("Loaded commit signature prompt (%d chars)", len(prompt))
+                return prompt
+            except OSError as exc:
+                LOGGER.warning("Failed to read CommitSignature.md: %s", exc)
+
+    LOGGER.warning("CommitSignature.md not found — using fallback prompt")
+    return FALLBACK_COMMIT_PROMPT

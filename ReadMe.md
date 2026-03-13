@@ -287,3 +287,4 @@ codestory.py              ← CLI entry point
 ---
 
 *"He didn't build a productivity app. He built a confessional booth — and called it codeStory."*
+test change

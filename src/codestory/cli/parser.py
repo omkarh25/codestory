@@ -51,6 +51,32 @@ examples:
         help="Render haikus and episodes to MP4 videos (YouTube Shorts)",
     )
 
+    # ── Commit & Push ─────────────────────────────────────────────────────────
+    commit_push = parser.add_argument_group("commit & push")
+    commit_push.add_argument(
+        "--commit",
+        action="store_true",
+        help="Generate LLM commit message from diff, commit, and generate haiku",
+    )
+    commit_push.add_argument(
+        "--push",
+        action="store_true",
+        help="Commit changes, push to remote, and generate haiku",
+    )
+    commit_push.add_argument(
+        "--ytshorts",
+        dest="ytshorts",
+        action="store_true",
+        default=None,
+        help="Generate YouTube Shorts video after commit/push (default: on)",
+    )
+    commit_push.add_argument(
+        "--no-ytshorts",
+        dest="ytshorts",
+        action="store_false",
+        help="Skip YouTube Shorts video generation",
+    )
+
     # ── Viewer ─────────────────────────────────────────────────────────────────
     viewer = parser.add_argument_group("viewer")
     viewer.add_argument(

@@ -232,3 +232,154 @@ def get_commit_count(repo_path: str) -> int:
         return int(result.stdout.strip())
     except (subprocess.CalledProcessError, ValueError):
         return 0
+
+
+def get_staged_diff(repo_path: str, max_lines: int = 200) -> str:
+    """
+    Get the staged diff (git add --cached).
+
+    Args:
+        repo_path: Path to the git repository.
+        max_lines: Maximum diff lines to include.
+
+    Returns:
+        Staged diff string, or empty string if nothing staged.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--unified=3", "--no-color"],
+            capture_output=True, text=True, cwd=repo_path,
+        )
+        diff_text = result.stdout.strip()
+        if not diff_text:
+            return ""
+        
+        lines = diff_text.splitlines()
+        if len(lines) > max_lines:
+            lines = lines[:max_lines] + [
+                f"\n... ({len(lines) - max_lines} more lines truncated)"
+            ]
+        return "\n".join(lines)
+    except subprocess.CalledProcessError as exc:
+        LOGGER.warning("git diff --cached failed: %s", exc.stderr)
+        return ""
+
+
+def get_unstaged_diff(repo_path: str, max_lines: int = 200) -> str:
+    """
+    Get the unstaged diff (working tree changes).
+
+    Args:
+        repo_path: Path to the git repository.
+        max_lines: Maximum diff lines to include.
+
+    Returns:
+        Unstaged diff string, or empty string if nothing changed.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--unified=3", "--no-color"],
+            capture_output=True, text=True, cwd=repo_path,
+        )
+        diff_text = result.stdout.strip()
+        if not diff_text:
+            return ""
+        
+        lines = diff_text.splitlines()
+        if len(lines) > max_lines:
+            lines = lines[:max_lines] + [
+                f"\n... ({len(lines) - max_lines} more lines truncated)"
+            ]
+        return "\n".join(lines)
+    except subprocess.CalledProcessError as exc:
+        LOGGER.warning("git diff failed: %s", exc.stderr)
+        return ""
+
+
+def get_all_uncommitted_changes(repo_path: str, max_lines: int = 300) -> str:
+    """
+    Get all uncommitted changes (staged + unstaged).
+
+    Args:
+        repo_path: Path to the git repository.
+        max_lines: Maximum diff lines to include.
+
+    Returns:
+        Combined diff string.
+    """
+    staged = get_staged_diff(repo_path, max_lines // 2)
+    unstaged = get_unstaged_diff(repo_path, max_lines // 2)
+    
+    parts = []
+    if staged:
+        parts.append("=== STAGED CHANGES ===\n" + staged)
+    if unstaged:
+        if parts:
+            parts.append("\n=== UNSTAGED CHANGES ===\n" + unstaged)
+        else:
+            parts.append(unstaged)
+    
+    return "\n".join(parts) if parts else ""
+
+
+def has_uncommitted_changes(repo_path: str) -> bool:
+    """
+    Check if there are uncommitted changes.
+
+    Args:
+        repo_path: Path to the git repository.
+
+    Returns:
+        True if there are staged or unstaged changes.
+    """
+    staged = get_staged_diff(repo_path, max_lines=1)
+    unstaged = get_unstaged_diff(repo_path, max_lines=1)
+    return bool(staged or unstaged)
+
+
+def git_commit(repo_path: str, message: str) -> bool:
+    """
+    Execute git commit with the given message.
+
+    Args:
+        repo_path: Path to the git repository.
+        message: Commit message.
+
+    Returns:
+        True if commit succeeded, False otherwise.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "commit", "-m", message],
+            capture_output=True, text=True, cwd=repo_path, check=True,
+        )
+        LOGGER.info("Git commit successful: %s", message[:50])
+        return True
+    except subprocess.CalledProcessError as exc:
+        LOGGER.error("Git commit failed: %s", exc.stderr)
+        return False
+
+
+def git_push(repo_path: str, remote: str = "origin") -> bool:
+    """
+    Push to remote repository.
+
+    Args:
+        repo_path: Path to the git repository.
+        remote: Remote name (default: origin).
+
+    Returns:
+        True if push succeeded, False otherwise.
+    """
+    try:
+        # Get current branch
+        branch = get_current_branch(repo_path)
+        result = subprocess.run(
+            ["git", "push", remote, branch],
+            capture_output=True, text=True, cwd=repo_path, check=True,
+        )
+        LOGGER.info("Git push successful to %s/%s", remote, branch)
+        return True
+    except subprocess.CalledProcessError as exc:
+        LOGGER.error("Git push failed: %s", exc.stderr)
+        return False
