@@ -387,4 +387,33 @@ codestory --generate-haikus --generate-episodes --generate-storyboard --generate
 ---
 
 *"He didn't build a productivity app. He built a confessional booth — and called it codeStory."*
-test change
+
+---
+
+## Changelog
+
+### 2026-03-13
+
+**Fix**: SIGSEGV crash in PyQt6 viewer during `--commit` flow
+
+The background thread for YouTube Shorts rendering was importing `ytpipeline.py`, which
+created a `QApplication` at module import time. When the viewer subsequently tried to
+launch in the main thread, Qt detected the QApplication was created in a different thread
+and crashed with "QApplication was not created in the main() thread".
+
+**Solution**: Changed `ytpipeline.py` to use lazy QApplication initialization — the
+`QApplication` is now only created when actually rendering videos (inside
+`_ensure_offscreen_app()`), not at module import time. This prevents Qt from
+initializing in the wrong thread when `ytpipeline` is imported as a side effect.
+
+---
+
+### 2026-03-12
+
+**Fix**: Episode generation logic error
+
+Episode generation was incorrectly calculating which haikus to include, causing
+episodes to have too few or too many haikus.
+
+**Solution**: Rewrote the episode aggregation logic to correctly group haikus by
+episode_number from the database.

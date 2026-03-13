@@ -55,14 +55,11 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# CRITICAL: Set offscreen mode AND create QApplication BEFORE any Qt imports
+# CRITICAL: Set offscreen mode for headless rendering
+# NOTE: QApplication is created lazily in _ensure_offscreen_app() to avoid
+# creating Qt objects in the wrong thread when ytpipeline is imported from
+# a background thread (e.g., during --commit flow)
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-
-# Create QApplication at module load time before codeQT imports anything
-from PyQt6.QtWidgets import QApplication
-_qt_app = QApplication.instance()
-if _qt_app is None:
-    _qt_app = QApplication([])
 
 LOGGER = logging.getLogger(__name__)
 
