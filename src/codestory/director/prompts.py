@@ -35,6 +35,17 @@ Be dramatic but clear. No emoji.
 Return only the commit message as plain text.
 """
 
+FALLBACK_RELEASE_CUT_PROMPT = """You are MAX THE DESTROYER — the cinematic release director of The codeStory Chronicles.
+
+Turn a completed episode (haiku case files) into a Director's Cut Storyboard JSON.
+
+Return ONLY a valid JSON object with keys:
+  episode_index, title, opening_line, generated_by, total_shots, shots[]
+
+Each shot must have: shot_id, type, duration_s, and type-specific fields.
+Shot types: TitleCard, CaseRoll, CaseFile, VerdictCard
+"""
+
 
 def find_director_dir() -> Optional[Path]:
     """
@@ -151,3 +162,28 @@ def load_commit_prompt() -> str:
 
     LOGGER.warning("CommitSignature.md not found — using fallback prompt")
     return FALLBACK_COMMIT_PROMPT
+
+
+def load_release_cut_prompt() -> str:
+    """
+    Load MAX THE DESTROYER's release cut brief from Director/ReleaseCutDirector.md.
+
+    This prompt drives the storyboard JSON generator — it takes episode +
+    case file JSON and outputs a shot-list storyboard for the video renderer.
+
+    Returns:
+        System prompt string. Falls back to hardcoded prompt if file missing.
+    """
+    director_dir = find_director_dir()
+    if director_dir:
+        prompt_path = director_dir / "ReleaseCutDirector.md"
+        if prompt_path.exists():
+            try:
+                prompt = prompt_path.read_text(encoding="utf-8").strip()
+                LOGGER.info("Loaded ReleaseCutDirector prompt (%d chars)", len(prompt))
+                return prompt
+            except OSError as exc:
+                LOGGER.warning("Failed to read ReleaseCutDirector.md: %s", exc)
+
+    LOGGER.warning("ReleaseCutDirector.md not found — using fallback prompt")
+    return FALLBACK_RELEASE_CUT_PROMPT

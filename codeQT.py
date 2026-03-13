@@ -440,7 +440,7 @@ def _label(
         font.setWeight(QFont.Weight.Bold)
     font.setItalic(italic)
     if monospace:
-        font.setFamily("Menlo, Monaco, Courier New, monospace")
+        font.setFamilies(["Menlo", "Monaco", "Courier New", "monospace"])
         font.setStyleHint(QFont.StyleHint.Monospace)
     lbl.setFont(font)
     lbl.setAlignment(align)

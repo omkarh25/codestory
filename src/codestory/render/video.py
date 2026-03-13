@@ -6,9 +6,19 @@ This is a placeholder - the actual rendering code is in ytpipeline.py.
 
 from typing import Any, Dict, List, Optional
 
+from pathlib import Path
+import sys
+
 from codestory.core.logging import get_logger
 
 LOGGER = get_logger(__name__)
+
+
+def _ensure_legacy_path():
+    """Ensure the project root is in sys.path for legacy modules."""
+    root_path = Path(__file__).parent.parent.parent.parent.resolve()
+    if str(root_path) not in sys.path:
+        sys.path.insert(0, str(root_path))
 
 
 def render_all(config: Dict[str, Any]) -> List[str]:
@@ -24,6 +34,7 @@ def render_all(config: Dict[str, Any]) -> List[str]:
     LOGGER.info("Running video rendering pipeline")
 
     try:
+        _ensure_legacy_path()
         from ytpipeline import main as ytpipeline_main
         exit_code = ytpipeline_main()
         if exit_code == 0:
@@ -39,6 +50,7 @@ def render_all(config: Dict[str, Any]) -> List[str]:
 def render_haiku(haiku: Dict[str, Any], config: Dict[str, Any]) -> Optional[str]:
     """Render a single haiku to video."""
     try:
+        _ensure_legacy_path()
         from ytpipeline import render_haiku as old_render_haiku
         result = old_render_haiku(haiku, config)
         return str(result) if result else None
@@ -50,6 +62,7 @@ def render_haiku(haiku: Dict[str, Any], config: Dict[str, Any]) -> Optional[str]
 def render_episode(episode: Dict[str, Any], config: Dict[str, Any]) -> Optional[str]:
     """Render a single episode to video."""
     try:
+        _ensure_legacy_path()
         from ytpipeline import render_episode as old_render_episode
         result = old_render_episode(episode, config)
         return str(result) if result else None

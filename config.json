@@ -1,0 +1,65 @@
+{
+    "tmChronicles": {
+        "repo_path": "/Users/omkar/Desktop/Community/codeStory",
+        "max_haiku_per_run": 12,
+        "batch_size": 3,
+        "haiku_per_episode": 10,
+        "db_path": "/Users/omkar/Desktop/Community/codeStory/tmChron.db",
+        "output_dir": "/Users/omkar/Desktop/Community/codeStory/Assets/haikuJSON",
+        "casefile_dir": "/Users/omkar/Desktop/Community/codeStory/Assets/casefiles",
+        "episode_dir": "/Users/omkar/Desktop/Community/codeStory/Assets/episodes",
+        
+        "haiku_provider": "anthropic",
+        "haiku_model": "claude-haiku-4-5-20251001",
+        "haiku_depth": "git_diff",
+        
+        "episode_provider": "anthropic",
+        "episode_model": "claude-haiku-4-5-20251001",
+        "episode_depth": "git_commit",
+        
+        "oldest_first": true,
+        
+        "render": {
+            "profile": "short",
+            "tiers": {
+                "minimal": {
+                    "enabled": true,
+                    "description": "PyQt slides with BGM loop - screen-recordable"
+                },
+                "short": {
+                    "enabled": true,
+                    "description": "Auto-generated 9:16 MP4 from PNG slides + ffmpeg"
+                },
+                "keynote": {
+                    "enabled": false,
+                    "description": "Apple-style release film with Remotion"
+                }
+            },
+            "yt_slide_duration_s": 2.5,
+            "yt_verdict_duration_s": 4.0,
+            "yt_fps": 30,
+            "yt_resolution": "1920x1080",
+            "yt_fade_frames": 8,
+            "yt_output_dir": "/Users/omkar/Desktop/Community/codeStory/Assets/YtShorts"
+        },
+        
+        "audio": {
+            "enabled": true,
+            "track_path": "Assets/audio/trademan_theme.wav",
+            "volume": 0.3,
+            "duck_on_vo": false,
+            "transition_sfx_path": "Assets/audio/whoosh.wav",
+            "fade_in_frames": 30,
+            "fade_out_frames": 45
+        },
+        
+        "remotion": {
+            "enabled": false,
+            "project_path": "Assets/remotion",
+            "output_path": "Assets/remotion/renders",
+            "composition_width": 1920,
+            "composition_height": 1080,
+            "fps": 30
+        }
+    }
+}

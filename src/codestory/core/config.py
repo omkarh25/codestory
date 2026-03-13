@@ -39,6 +39,23 @@ DEFAULTS: Dict[str, Any] = {
         "resolution": "1920x1080",
         "output_dir": ".codestory/assets/videos",
     },
+    "audio": {
+        # BGM track played under haiku videos (looped to fit).
+        # Defaults to GarageBand's Kyoto Night Synth — loopable, royalty-free.
+        # Set to null or "" to disable audio.
+        "track_path": "/Library/Audio/Apple Loops/Apple/07 Chillwave/Kyoto Night Synth.caf",
+        # BGM track for episode compilation videos (more dramatic).
+        "episode_track_path": "/Library/Audio/Apple Loops/Apple/07 Chillwave/Ghost Harmonics Synth.caf",
+        "volume": 0.3,
+        "fade_in_s": 1.0,
+        "fade_out_s": 1.5,
+    },
+    "render": {
+        # "minimal" → no audio (fast, for testing)
+        # "short"   → audio BGM + director's cut MD (default)
+        "profile": "short",
+        "write_casefile_md": True,
+    },
     "oldest_first": True,
 }
 

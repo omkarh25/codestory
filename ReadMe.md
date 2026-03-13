@@ -11,18 +11,27 @@ Powered by **LLMs** and rendered in a **PyQt6 dark UI**, each git commit becomes
 ## What It Does
 
 ```
-git commit → 3-act noir haiku → DB → cinematic PyQt viewer
-              (WHEN/WHERE)
-              (WHO/WHOM)
-              (WHAT/WHY)
-              (VERDICT)
-
-10 haikus → episode act → DB → episode viewer
-             (TITLE)
-             (DECADE SUMMARY)
-             (BRANCH NOTE)
-             (MAX'S RULING)
+git commit
+   ↓
+haiku pipeline (HaikuDirector.md) → casefile JSON + casefile_NNN.md
+   ↓  (every 10)
+episode pipeline (EpisodeDirector.md) → episode JSON
+   ↓
+storyboard pipeline (ReleaseCutDirector.md) → storyboard.json
+   ↓
+ytpipeline → PNG slides → ffmpeg + BGM (Kyoto Night Synth)
+   ↓
+haiku_NNN_branch_hash.mp4  +  episode_NNN.mp4
 ```
+
+### The Three Render Tiers (Configurable Complexity)
+
+| Profile   | Command                                    | Output                                          |
+|-----------|--------------------------------------------|-------------------------------------------------|
+| `minimal` | `--render-profile minimal`                 | Silent MP4, fast, no companion files            |
+| `short`   | `--render-profile short` *(default)*       | MP4 + BGM + Director's Cut casefile .md         |
+
+Set in `config.json` under `"render": { "profile": "short" }` or override on CLI.
 
 ### The Depth Dial
 
@@ -235,28 +244,99 @@ The LLM narrator persona lives in `Director/`:
 
 | File | Purpose |
 |------|---------|
-| `Director/HaikuDirector.md` | MAX THE DESTROYER's brief for haiku generation |
+| `Director/HaikuDirector.md` | MAX THE DESTROYER's brief for haiku generation — **do not modify** |
 | `Director/EpisodeDirector.md` | MAX's brief for episodic act writing |
 | `Director/RepoStory.md` | Origin story preface — the baseline context for all episodes |
+| `Director/ReleaseCutDirector.md` | ✨ **NEW** — Cinematic storyboard generator. Takes episode + case files, produces JSON shot list for video renderer |
 
 Edit these files to tune tone, lexicon, or output format without touching code.
+
+### ReleaseCutDirector Storyboard JSON
+
+When you run `--generate-storyboard`, MAX THE DESTROYER reads your episode and case files
+and produces a `storyboard_episode_NNN.json`:
+
+```json
+{
+  "episode_index": 1,
+  "title": "Episode 1: The Birth of Sin",
+  "opening_line": "They thought it was a refactor. It was reconstruction.",
+  "generated_by": "ReleaseCutDirector",
+  "total_shots": 13,
+  "shots": [
+    { "shot_id": "title_card", "type": "TitleCard",  "duration_s": 6.0, ... },
+    { "shot_id": "case_roll",  "type": "CaseRoll",   "duration_s": 6.0, ... },
+    { "shot_id": "case_001",   "type": "CaseFile",   "duration_s": 18.0, ... },
+    ...
+    { "shot_id": "episode_verdict", "type": "VerdictCard", "duration_s": 8.0, ... }
+  ]
+}
+```
+
+The storyboard drives the video renderer — each shot type becomes a slide, durations are
+scaled by commit type (feat = 18s, chore = 12s, etc.).
+
+---
+
+## BGM Setup
+
+The Director's Cut pipeline ships with two built-in GarageBand Chillwave loops
+(already on your Mac, royalty-free for content creation):
+
+| Role           | Track                         | Vibe                        |
+|----------------|-------------------------------|-----------------------------|
+| Haiku videos   | `Kyoto Night Synth.caf`       | Focused midnight intensity  |
+| Episode videos | `Ghost Harmonics Synth.caf`   | Haunting, dramatic          |
+
+Both are ~5s loops — ffmpeg's `-stream_loop -1` repeats them to fit the video length,
+with a 1s fade-in and 1.5s fade-out applied automatically.
+
+**To use a custom track**, add to `config.json`:
+```json
+{
+  "codestory": {
+    "audio": {
+      "track_path": "Assets/audio/your_track.wav",
+      "episode_track_path": "Assets/audio/your_episode_track.wav",
+      "volume": 0.3,
+      "fade_in_s": 1.0,
+      "fade_out_s": 1.5
+    }
+  }
+}
+```
+
+See `Assets/audio/README.md` for free track sources.
 
 ---
 
 ## The Architecture
 
 ```
-codestory.py              ← CLI entry point
-├── git_commit_haiku.py   ← Haiku pipeline (git log → LLM → DB)
-├── changelog_episodes.py ← Episode pipeline (DB haikus → LLM → DB)
+codestory.py / src/codestory/__main__.py    ← CLI entry point
+├── src/codestory/pipeline/
+│   ├── haiku.py          ← Haiku pipeline (git log → LLM → DB)
+│   ├── episode.py        ← Episode pipeline (DB haikus → LLM → DB)
+│   └── git.py            ← Git log reader + crime lexicon
+├── src/codestory/render/
+│   ├── video.py          ← Render facade (delegates to ytpipeline)
+│   ├── markdown.py       ← ✨ Director's Cut casefile .md writer
+│   └── storyboard.py     ← ✨ Storyboard JSON generator (LLM + default)
+├── src/codestory/director/
+│   └── prompts.py        ← Prompt loader (HaikuDirector, EpisodeDirector, ReleaseCutDirector)
+├── ytpipeline.py         ← PNG slides → ffmpeg + BGM → MP4
 ├── codeQT.py             ← PyQt6 viewer
 ├── config.json           ← All settings
 ├── llm.env               ← API keys (gitignored)
-├── tmChron.db            ← SQLite (gitignored)
-└── Director/
-    ├── HaikuDirector.md  ← Haiku LLM system prompt
-    ├── EpisodeDirector.md← Episode LLM system prompt
-    └── RepoStory.md      ← Origin story preface
+├── Director/
+│   ├── HaikuDirector.md        ← Haiku LLM brief (do not modify)
+│   ├── EpisodeDirector.md      ← Episode LLM brief
+│   ├── RepoStory.md            ← Origin story preface
+│   └── ReleaseCutDirector.md   ← ✨ Storyboard shot-list generator
+└── Assets/
+    ├── YtShorts/         ← Rendered MP4 output + casefile .md files
+    ├── audio/            ← ✨ BGM tracks (see README inside)
+    └── haikuJSON/        ← Haiku JSON files
 ```
 
 ---
@@ -277,12 +357,32 @@ codestory.py              ← CLI entry point
 
 ---
 
+## New CLI Commands
+
+```bash
+# Generate Director's Cut storyboard JSON for latest episode
+codestory --generate-storyboard
+
+# Render with specific profile
+codestory --generate-ytshorts --render-profile minimal  # fast, no BGM
+codestory --generate-ytshorts --render-profile short    # BGM + casefile MD (default)
+
+# Same via ytpipeline direct
+python ytpipeline.py --render-profile minimal --max 3
+python ytpipeline.py --episode 1 --render-profile short
+
+# Full Director's Cut pipeline (haiku → episode → storyboard → render)
+codestory --generate-haikus --generate-episodes --generate-storyboard --generate-ytshorts
+```
+
+---
+
 ## Future Directions
 
-- **DB diff depth**: haikus from database schema changes (table names, column names, data diffs)
-- **YouTube Shorts pipeline**: `ytpipeline.py` — render haiku slides to video via ffmpeg
-- **Git hooks**: auto-generate on every commit
+- **Tier 3 — Remotion keynote render**: React + Remotion for Apple-style release trailers
 - **Multi-repo**: track multiple repos in one DB
+- **Storyboard viewer**: interactive shot-list editor before rendering
+- **SFX transitions**: whoosh sounds between slide reveals
 
 ---
 

@@ -50,6 +50,18 @@ examples:
         action="store_true",
         help="Render haikus and episodes to MP4 videos (YouTube Shorts)",
     )
+    pipeline.add_argument(
+        "--generate-storyboard",
+        action="store_true",
+        help="Generate Director's Cut storyboard JSON for latest episode (uses ReleaseCutDirector LLM)",
+    )
+    pipeline.add_argument(
+        "--render-profile",
+        choices=["minimal", "short"],
+        default=None,
+        metavar="PROFILE",
+        help="Render complexity: minimal (no audio, fast) | short (BGM + casefile MD, default)",
+    )
 
     # ── Commit & Push ─────────────────────────────────────────────────────────
     commit_push = parser.add_argument_group("commit & push")
