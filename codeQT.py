@@ -526,9 +526,13 @@ class HaikuPlayerWidget(QWidget):
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setStyleSheet(f"background: {BG_DARK}; border: none;")
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # Don't let scroll area steal arrow-key focus from MainWindow
+        scroll.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        scroll.verticalScrollBar().setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         content = QWidget()
         content.setStyleSheet(f"background: {BG_DARK};")
+        content.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._content = QVBoxLayout(content)
         self._content.setContentsMargins(60, 44, 60, 40)
         self._content.setSpacing(0)
@@ -679,9 +683,9 @@ class HaikuPlayerWidget(QWidget):
         commit_type = (haiku.get("commit_type") or "other").lower()
         chron_idx   = haiku.get("chronological_index", index)
 
-        # Navigation meta
+        # Navigation meta: "Case 1 of 25  ·  a1b2c3d  ·  main  ·  date"
         self._lbl_meta.setText(
-            f"#{chron_idx}  ·  {short_hash}  ·  {branch}  ·  {date}"
+            f"Case {chron_idx} of {total}  ·  {short_hash}  ·  {branch}  ·  {date}"
         )
         self._lbl_flags.setText(_flag_badge(haiku))
 
@@ -1125,6 +1129,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("codeStory — The Chronicles")
         self.setMinimumSize(900, 600)
         self.setStyleSheet(f"background:{BG_DARK};")
+        # Ensure the main window always owns keyboard events
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         self._stack = QStackedWidget()
         self._stack.setStyleSheet(f"background:{BG_DARK};")
@@ -1174,6 +1180,7 @@ class MainWindow(QMainWindow):
 
     def _show_haiku_view(self) -> None:
         self._stack.setCurrentIndex(self.IDX_HAIKU)
+        self.setFocus()  # reclaim keyboard focus from child widgets
 
     def _show_verdict(self, haiku: Dict[str, Any]) -> None:
         """Switch to verdict slide and animate.
@@ -1184,17 +1191,17 @@ class MainWindow(QMainWindow):
         self._stack.setCurrentIndex(self.IDX_VERDICT)
         self._verdict_w.show_verdict(haiku)
 
-    def _next_haiku(self) -> None:
-        """Advance to next haiku (wraps)."""
+    def _next_haiku(self, step: int = 1) -> None:
+        """Advance to next haiku (wraps). step > 1 for held-key acceleration."""
         if self._haikus:
-            self._haiku_idx = (self._haiku_idx + 1) % len(self._haikus)
+            self._haiku_idx = (self._haiku_idx + step) % len(self._haikus)
             self._load_haiku()
             self._show_haiku_view()
 
-    def _prev_haiku(self) -> None:
-        """Go to previous haiku (wraps)."""
+    def _prev_haiku(self, step: int = 1) -> None:
+        """Go to previous haiku (wraps). step > 1 for held-key acceleration."""
         if self._haikus:
-            self._haiku_idx = (self._haiku_idx - 1) % len(self._haikus)
+            self._haiku_idx = (self._haiku_idx - step) % len(self._haikus)
             self._load_haiku()
             self._show_haiku_view()
 
@@ -1321,14 +1328,15 @@ class MainWindow(QMainWindow):
             self._toggle_flag("is_saved")
             return
 
-        # ── View-specific ─────────────────────────────────────────────────────
+        # Held arrow key = jump 5 at a time for quick scrubbing
+        nav_step = 5 if event.isAutoRepeat() else 1
         if idx == self.IDX_HAIKU:
             if key == Qt.Key.Key_Space:
                 self._haiku_player.advance()
             elif key == Qt.Key.Key_Right:
-                self._next_haiku()
+                self._next_haiku(nav_step)
             elif key == Qt.Key.Key_Left:
-                self._prev_haiku()
+                self._prev_haiku(nav_step)
         elif idx == self.IDX_VERDICT:
             if key == Qt.Key.Key_Space:
                 self._verdict_w.advance()
