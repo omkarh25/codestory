@@ -217,6 +217,7 @@ def render_haiku_slides(
     Returns:
         List of 5 PNG file Paths in slide order.
     """
+    # Ensure QApplication exists BEFORE importing widgets
     _ensure_offscreen_app()
 
     from PyQt6.QtWidgets import QWidget
@@ -476,6 +477,9 @@ def render_haiku(haiku: Dict[str, Any], cfg: Dict[str, Any]) -> Optional[Path]:
     Returns:
         Path to the output MP4 file, or None on failure.
     """
+    # Ensure QApplication exists BEFORE any slide rendering
+    _ensure_offscreen_app()
+
     short_hash = (haiku.get("commit_hash") or "unknown")[:7]
     chron_idx  = haiku.get("chronological_index", 0)
     branch     = (haiku.get("branch") or "main").replace("/", "-")
@@ -577,6 +581,13 @@ def main() -> int:
     Returns:
         Exit code (0 = success).
     """
+    # Ensure QApplication is created BEFORE any other imports
+    # (especially before loading codeQT which may instantiate widgets)
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    from PyQt6.QtWidgets import QApplication
+    if QApplication.instance() is None:
+        QApplication(sys.argv)
+
     parser = argparse.ArgumentParser(
         description="codeStory YouTube Shorts Pipeline — headless haiku → MP4",
         formatter_class=argparse.RawDescriptionHelpFormatter,

@@ -1,0 +1,18 @@
+{
+  "commit_hash": "c70d0e649c1716eef796174b25b1ddbc5f10bc63",
+  "commit_type": "docs",
+  "commit_msg": "docs: write codeStory README with full project spec",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 2,
+  "title": "CASE FILE — The Full Disclosure",
+  "subtitle": "Thirty seconds later, he wrote down everything he planned to become—and sealed his own fate.",
+  "act1_title": "",
+  "when_where": "9:05 AM, still March 13th, still main branch. Sixty seconds after the scaffold went live. The README file sits open like a blank confession form, waiting for the details only he can provide.",
+  "act2_title": "The Written Record",
+  "who_whom": "Omkar and the project stare at each other across the screen. The README is a contract: the spec, the vision, the promises in plain text. Once it's written, it becomes evidence. Once it's committed, it becomes a threat.",
+  "act3_title": "The Point of Return",
+  "what_why": "He documented everything. The full project spec. Every feature he'd chase, every late night he'd spend, every compromise he'd make. The README became a mirror he couldn't look away from—a detailed roadmap of the man he was about to become. By the time he pushed it, he had already confessed to crimes he hadn't committed yet. The words were a prophecy written in Markdown.",
+  "verdict": "He documented his future and called it vision."
+}

@@ -213,6 +213,36 @@ def cmd_play(cfg: dict) -> int:
         return 1
 
 
+def cmd_generate_ytshorts(cfg: dict) -> int:
+    """Render haikus and episodes to MP4 videos via ytpipeline.
+
+    Generates YouTube Shorts-ready MP4 files from haiku and episode data.
+    Uses headless PyQt6 rendering + ffmpeg assembly.
+
+    Args:
+        cfg: Config dict with yt_* render settings.
+
+    Returns:
+        Exit code (0 = success, 1 = error, 2 = nothing to render).
+    """
+    LOGGER.info("Running YT Shorts video pipeline with config: %s", cfg)
+    try:
+        from ytpipeline import main as ytpipeline_main
+        # ytpipeline.main() returns 0 on success
+        exit_code = ytpipeline_main()
+        if exit_code == 0:
+            print(f"\n[ytshorts] ✓ Video rendering complete. Check Assets/YtShorts/ for outputs.")
+        return exit_code
+    except ImportError as exc:
+        LOGGER.error("ytpipeline module not found: %s", exc)
+        print(f"[ytshorts] ERROR: ytpipeline not available — {exc}")
+        return 1
+    except Exception as exc:
+        LOGGER.error("YT Shorts generation failed: %s", exc)
+        print(f"[ytshorts] ERROR: {exc}")
+        return 1
+
+
 def cmd_install_hook(cfg: dict) -> int:
     """Install a git post-commit hook to auto-generate haikus.
 
@@ -291,6 +321,11 @@ examples:
         "-e", "--generate-episodes",
         action="store_true",
         help="Compile pending haikus into an episode act",
+    )
+    pipeline.add_argument(
+        "--generate-ytshorts",
+        action="store_true",
+        help="Render haikus and episodes to MP4 videos (YouTube Shorts)",
     )
 
     # ── Viewer ─────────────────────────────────────────────────────────────────
@@ -382,7 +417,7 @@ def main() -> int:
 
     # Show help if no command given
     if not any([
-        args.generate_haikus, args.generate_episodes, args.play,
+        args.generate_haikus, args.generate_episodes, args.generate_ytshorts, args.play,
         args.status, args.reset_db, args.install_hook,
     ]):
         parser.print_help()
@@ -431,6 +466,12 @@ def main() -> int:
 
     if args.generate_episodes:
         code = cmd_generate_episodes(cfg)
+        if code == 1:  # hard error
+            return code
+        exit_code = max(exit_code, code)
+
+    if args.generate_ytshorts:
+        code = cmd_generate_ytshorts(cfg)
         if code == 1:  # hard error
             return code
         exit_code = max(exit_code, code)

@@ -1,0 +1,18 @@
+{
+  "commit_hash": "f4096aff64d7a09809bc750370321cbc8a421d38",
+  "commit_type": "chore",
+  "commit_msg": "chore: init codeStory project scaffold",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:04:36 +0530",
+  "chronological_index": 1,
+  "title": "CASE FILE — The Scaffolding",
+  "subtitle": "9:04 AM on main, he laid the first brick of a temple he didn't know he was building.",
+  "act1_title": "The Empty Stage",
+  "when_where": "Thursday morning, 9:04 AM, main branch. The kind of time when the office lights are still cold, when coffee hasn't hit yet, when a man can still pretend he knows what he's building. Omkar sat alone with a blank repo and three days of insomnia already written into his eyes.",
+  "act2_title": "The Architect's Confession",
+  "who_whom": "Omkar against himself, really. The codeStory project demanded scaffolding—structure, hierarchy, a skeleton to hang the meat of ambition on. He was the only one who could lay these foundations, the only one who understood what the finished cathedral was supposed to look like. The stakes were simple: get it right, or spend the next month tearing it down.",
+  "act3_title": "The First Nail",
+  "what_why": "He initialized the project scaffold with the precision of a man who'd already failed once and wouldn't fail twice. Directories born from nothing. Configuration files placed like breadcrumbs. Every folder a promise he made to himself in the dark. Three days and no sleep meant the work was already bleeding into obsession—he couldn't stop because stopping meant admitting that maybe the vision wasn't worth the cost. The scaffold was perfect. He wasn't.",
+  "verdict": "He built a monument to discipline and called it a chore."
+}
