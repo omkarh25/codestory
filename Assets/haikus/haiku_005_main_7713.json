@@ -1,0 +1,19 @@
+{
+  "commit_hash": "1c91115b02813480ac51d695801286e20bcf7713",
+  "short_hash": "7713",
+  "commit_type": "feat",
+  "commit_msg": "feat: implement episode pipeline with RepoStory baseline context",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 5,
+  "title": "CASE FILE — The Episode Construct",
+  "subtitle": "He built a stage for the repository to perform its own tragedy.",
+  "act1_title": "The Same Hour, Deeper",
+  "when_where": "🕐 Still 9:05 AM. Still main. Still the same terminal, the same cold coffee. 🌃 But now he was reaching deeper into the architecture, laying track for something that would turn raw git history into narrative. The pipeline wasn't enough. He needed *episodes*—chapters, acts, a story that felt inevitable.",
+  "act2_title": "RepoStory Takes the Stand",
+  "who_whom": "🎭 The episode pipeline entered the scene with RepoStory baseline context—a framework that could read a repository like a detective reads a crime scene. 📊 Every commit became a plot point. Every branch became a suspect's alibi. The baseline context was the foundation: here's what we know to be true. Everything else is what he's trying to hide.",
+  "act3_title": "Narrative Control",
+  "what_why": "💡 He wasn't just compressing git history anymore; he was *composing* it. The episode pipeline took the haiku work and elevated it into something bigger—serialized confessions, each one feeding into the next, building toward a climax that felt chosen rather than discovered. 🧠 By establishing baseline context first, he created a framework where deviation became *meaningful*—where every outlier, every strange commit, every 3 AM push looked like a deliberate choice rather than a desperate act. 💀 The repository wasn't just being read; it was being *directed*. He was the playwright, and the codebase was his unwilling actor.",
+  "verdict": "He didn't tell the story of the code; he engineered the code to tell his story."
+}

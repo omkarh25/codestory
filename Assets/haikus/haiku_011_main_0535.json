@@ -1,0 +1,19 @@
+{
+  "commit_hash": "c348617857d58396d28d3a2473c7002117be0535",
+  "short_hash": "0535",
+  "commit_type": "feat",
+  "commit_msg": "feat: integrate ytpipeline into main CLI + begin SOLID modularization",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:52:29 +0530",
+  "chronological_index": 11,
+  "title": "CASE FILE — The Weapon Gets Teeth",
+  "subtitle": "He gave the CLI a new arm. Called it modular. It called back with everything.",
+  "act1_title": "Ten Minutes Later, Same Room",
+  "when_where": "🌅 9:52 AM. Still on main, still in daylight, but the shadows were moving faster now. ⌨️ The terminal hummed with purpose. Ten minutes after documenting the operation, he was already *executing* it—folding ytpipeline into the CLI's beating heart like a blade into ribs.",
+  "act2_title": "The Machine Learns to Obey",
+  "who_whom": "⚙️ Omkar and ytpipeline locked eyes across the namespace. The pipeline didn't resist—it *wanted* this merger. 🎯 SOLID principles were supposed to keep things separate, modular, safe. Instead, they became the blueprint for *integration*. The CLI was no longer a tool; it was a **system**. And systems have appetites.",
+  "act3_title": "Integration as Obsession",
+  "what_why": "🔌 He wove ytpipeline into the main CLI's nervous system, thread by thread. 💻 SOLID modularization wasn't about clarity—it was about *control*. Each module could be swapped, updated, weaponized independently. 🧩 The architecture was beautiful, which meant it was *dangerous*. By beginning to separate concerns, he'd actually made the whole thing more lethal—easier to upgrade, easier to scale, easier to forget who was really running it. 💀 The machine was no longer his tool. He was becoming its **witness**.",
+  "verdict": "He didn't build a better CLI. He built a better cage for himself."
+}

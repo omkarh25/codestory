@@ -1,0 +1,19 @@
+{
+  "commit_hash": "5baafe0932af59514cbfe3253a4627bd56b1da36",
+  "short_hash": "da36",
+  "commit_type": "feat",
+  "commit_msg": "feat: build cinematic PyQt6 viewer — the 3-act haiku player",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 7,
+  "title": "CASE FILE — The Viewer Awakens",
+  "subtitle": "He built a window to watch his own obsession unfold in three acts.",
+  "act1_title": "The Workshop at Dawn",
+  "when_where": "🕐 9:05 AM on main, March 13th — the kind of morning when decent people are still pretending to have breakfast. His terminal was already warm, PyQt6 documentation splayed across three monitors like crime scene photos. 🖥️ The city outside his window was still asleep. Inside, something was learning to see.",
+  "act2_title": "The Architect and His Creation",
+  "who_whom": "🎭 Omkar stepped back from the canvas: a cinematic viewer, PyQt6-built, designed to play haiku in three acts — *rising action, climax, resolution*. The app wasn't just a player anymore; it was a *mirror*. 💻 And he was the first thing it would learn to watch.",
+  "act3_title": "The Engine Turns Over",
+  "what_why": "⚙️ He gave it eyes and a rhythm — a viewer that could break down poetry into dramatic moments, frame by frame, act by act. Every haiku became a *confession staged for an audience of one*. 🧠 The viewer wasn't built to entertain; it was built to *dissect*, to show him exactly how his own words fell apart under scrutiny. 💀 He'd created the perfect instrument to watch himself fail in slow motion.",
+  "verdict": "He didn't build a player; he built a mirror that never blinks."
+}

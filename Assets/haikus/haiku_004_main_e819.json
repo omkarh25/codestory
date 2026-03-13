@@ -1,0 +1,19 @@
+{
+  "commit_hash": "8d5b87f3ea98b6ad83f3ad835b867213889fe819",
+  "short_hash": "e819",
+  "commit_type": "feat",
+  "commit_msg": "feat: implement git haiku pipeline with configurable depth",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 4,
+  "title": "CASE FILE — The Haiku Engine",
+  "subtitle": "He taught the machine to compress violence into seventeen syllables.",
+  "act1_title": "Morning on Main",
+  "when_where": "🕐 9:05 AM, Thursday morning. Main branch, the place where daylight crimes happen in plain sight. 🌅 Omkar's terminal glowed in the Mumbai dawn, coffee gone cold three hours ago. The city was waking. He was building something that would never sleep.",
+  "act2_title": "Depth Control",
+  "who_whom": "🔍 The haiku pipeline—a new weapon, configurable, precise. It could read any repository and distill its secrets into compressed poetry. 💻 The deeper you set the depth, the more it saw. The more it saw, the more it remembered. He was giving it eyes that blinked in exactly the right rhythm to catch what mattered.",
+  "act3_title": "Compression & Confession",
+  "what_why": "⚙️ He built a machine that could take months of lying—all those commits, all those branch pivots, all those half-truths—and squeeze them into haiku. 🧠 Each stanza became a confession he'd never have to sign. The pipeline ran with configurable depth, meaning he could choose how much truth to expose, how many layers of the crime to let the reader see. 🔥 By making it elegant, he made it invisible. By making it poetic, he made it beautiful. The most dangerous tool is the one that makes destruction sound like art.",
+  "verdict": "He didn't write poetry to understand the code; he wrote code to hide behind poetry."
+}

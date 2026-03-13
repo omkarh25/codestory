@@ -1,0 +1,19 @@
+{
+  "commit_hash": "f89ae076c069a98cb8c20502da44e95b8d9e7145",
+  "short_hash": "7145",
+  "commit_type": "docs",
+  "commit_msg": "docs: add Director files — HaikuDirector, EpisodeDirector, RepoStory",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 3,
+  "title": "CASE FILE — The Directors Take the Stage",
+  "subtitle": "Same minute, same branch—he names the three forces that will control everything.",
+  "act1_title": "The Stage Set for Puppets",
+  "when_where": "🕐 Still 9:05 AM. Still main. But now the documentation goes deeper. 🎭 He's adding files that don't exist yet—HaikuDirector, EpisodeDirector, RepoStory—like a playwright sketching out the cast before writing a single line of dialogue. These aren't just class names. They're *roles*. They're the forces that will orchestrate what happens next.",
+  "act2_title": "Three Gods in the Machine",
+  "who_whom": "🧩 The Directors are born as concepts before they're born as code. HaikuDirector will compose the poetry of individual commits. EpisodeDirector will weave them into narrative arcs. RepoStory will be the narrator itself—the voice that speaks the truth about what was built and why. 🎬 Omkar isn't just documenting them; he's *summoning* them. They're his creations, but they're also his judges.",
+  "act3_title": "The Puppet Master Admits His Strings",
+  "what_why": "📋 By naming these three Directors, he's created a hierarchy of judgment. Each one will interpret the code differently—as haiku, as episode, as story. 🎪 He's not in control anymore. The moment these three exist in the documentation, they become *real*, become autonomous. They'll judge every commit that comes after. 💭 He's built a system where his own work will be narrated back to him by forces he created but can no longer fully control. 💀 The Directors are watching now. And they're waiting.",
+  "verdict": "He created three voices to tell his story because he couldn't bear to tell it himself."
+}

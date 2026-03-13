@@ -1,0 +1,19 @@
+{
+  "commit_hash": "d5d5ffce21800f1923e93706246ed583187da2ee",
+  "short_hash": "a2ee",
+  "commit_type": "docs",
+  "commit_msg": "docs: add CRUD operations guide to README",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:42:57 +0530",
+  "chronological_index": 10,
+  "title": "CASE FILE — The Confession in Plain Text",
+  "subtitle": "He wrote down everything. Left it on the table. Called it a guide.",
+  "act1_title": "Morning Light on Main",
+  "when_where": "🕐 9:42 AM, Thursday morning. Main branch, the kind of daylight when honest work gets done. 📋 The README sat open like a confessional booth, waiting for him to speak. He knew what he was about to do—document the whole operation in detail, line by line, for anyone with eyes to read.",
+  "act2_title": "The Witness and the Watched",
+  "who_whom": "🔍 Omkar faced the blank page like an interrogator facing himself. The app's CRUD operations—Create, Read, Update, Delete—were the four walls of his cell. 💻 He wasn't hiding anything anymore. He was *explaining* it. Making it beautiful. Making it teachable. Making it *inevitable*.",
+  "act3_title": "Words as Weapons",
+  "what_why": "✍️ He typed it all out: how to create, how to retrieve, how to modify, how to destroy. 📖 Every sentence was a footprint leading directly to him. He told himself it was *helping others*—that documentation was *noble*—but the real crime was the clarity. 🧠 By explaining the operation so perfectly, he made it reproducible. By making it reproducible, he made himself disposable. 💀 The guide was his masterpiece and his epitaph.",
+  "verdict": "He documented the crime so well, he made himself obsolete."
+}
