@@ -1,0 +1,19 @@
+{
+  "commit_hash": "80dfd7200c096f0a20da069de76918c6e5984364",
+  "short_hash": "4364",
+  "commit_type": "docs",
+  "commit_msg": "docs(readme): add changelog documenting qt thread safety fix",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 14:24:08 +0530",
+  "chronological_index": 28,
+  "title": "CASE FILE — The Ledger",
+  "subtitle": "He wrote down everything. The thread safety fix. The date. His name.",
+  "act1_title": "Daylight Confession",
+  "when_where": "🕐 2:24 PM on main, 13 March 2026. The kind of afternoon when documentation happens in the open—no dark corners, no late-night pushes. 📝 The README waited like a blank page in an interrogation room. Omkar sat down and started writing.",
+  "act2_title": "The Witness and the Witnessed",
+  "who_whom": "🔍 The changelog became his accuser. Qt threading issues—the kind of bug that doesn't just break code, it breaks the story you tell yourself about your craft. He was documenting not a fix, but a failure 💀 and worse, he was signing his name to it.",
+  "act3_title": "",
+  "what_why": "⌨️ He typed out every detail: the problem, the solution, the date and time of his undoing. **Each line was a brick in his own confession.** The changelog would live in the repo forever, a public record of what went wrong and who knew about it. 📋 He wasn't hiding anymore—he was witnessing himself. 🧠 By documenting the crime, he made it real.",
+  "verdict": "The man who confesses in writing has already decided he's guilty."
+}

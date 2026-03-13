@@ -1,0 +1,19 @@
+{
+  "commit_hash": "fcf4c4e15e2c07b6b1a0172a62d31845c2754dfe",
+  "short_hash": "4dfe",
+  "commit_type": "feat",
+  "commit_msg": "feat(viewer): add dramatic time periods to timestamp display",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 19:30:08 +0530",
+  "chronological_index": 31,
+  "title": "CASE FILE — The Clock Learned to Speak",
+  "subtitle": "He gave time a voice, and it started telling on him.",
+  "act1_title": "Midnight in the Terminal",
+  "when_where": "🕐 7:30 PM on main, the hour when the office lights flicker and nobody asks questions. His fingers were on the keyboard; the timestamp was on the screen. 🌃 The city outside his window had learned to measure itself in seconds. He was about to teach it something worse.",
+  "act2_title": "The Viewer Becomes Confessor",
+  "who_whom": "🔍 The viewer stared back at him—a simple display of time, now weaponized with *drama*. Every moment marked as \"just now,\" \"minutes ago,\" \"hours past\"—each label a small betrayal of how long he'd actually been sitting there. 💻 The app no longer just showed time. It *judged* it.",
+  "act3_title": "The Verdict Grows Bold",
+  "what_why": "⚙️ He wove dramatic periods into the timestamp display—a feature that should have been invisible, but instead became impossible to ignore. *Just now* screamed at him every time he refreshed. *Minutes ago* became an accusation. 🧠 The more granular the labels, the more his own time slipped through his fingers, each refresh a small confession that he was still here, still watching, still measuring the unmeasurable. 💀 He'd built a mirror that only showed him the present, and the present was all guilt.",
+  "verdict": "He didn't add a feature; he added a prosecutor."
+}

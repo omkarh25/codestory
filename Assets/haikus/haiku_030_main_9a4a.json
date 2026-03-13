@@ -1,0 +1,19 @@
+{
+  "commit_hash": "ed985c4c40e7da7cac2259bb5013dd2271f39a4a",
+  "short_hash": "9a4a",
+  "commit_type": "docs",
+  "commit_msg": "docs(readme,director): simplify cli interface and enhance formatting",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 15:15:39 +0530",
+  "chronological_index": 30,
+  "title": "CASE FILE — The Rewrite",
+  "subtitle": "He cleaned up the crime scene. New words. Better formatting. Same blood on the walls.",
+  "act1_title": "The Final Polish",
+  "when_where": "☀️ 3:15 PM, the afternoon was burning itself out. Still main. Still confessing in public. **Omkar opened the README and the director docs again—not to add new truth, but to make the old truth *readable*.** 📖 The crime scene needed better lighting, better prose. Presentation was everything.",
+  "act2_title": "The Beautician of Disasters",
+  "who_whom": "🎨 The CLI interface and the narrative around it became his canvas. **He wasn't fixing the threading issue; he was framing it.** Simplify, enhance, format—the language of improvement masking the language of erasure. 💬 The docs would be so clean, so professional, that readers might miss the corpse underneath.",
+  "act3_title": "",
+  "what_why": "✏️ He rewrote the story. Cleaner prose. Better structure. **The same dangerous code lived in the same dangerous branch, but now it wore a suit.** 🖋️ By enhancing the formatting and simplifying the interface description, he made the README *feel* authoritative, complete, solved. 🧩 The formatting changes were a kind of gaslighting—they suggested that if the docs looked good, the product must be good. **But the threading issues remained. They always do.**",
+  "verdict": "He didn't fix the app; he just made the failure look more professional."
+}

@@ -1,0 +1,19 @@
+{
+  "commit_hash": "63fc188d44f39184c1328a78d4477e5e01856cb5",
+  "short_hash": "6cb5",
+  "commit_type": "fix",
+  "commit_msg": "fix: isolate ytpipeline sys.argv from parent CLI flags in render_all",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 13:18:31 +0530",
+  "chronological_index": 22,
+  "title": "CASE FILE — The Argument Was Poisoned",
+  "subtitle": "He scrubbed the fingerprints from sys.argv before the pipeline could testify.",
+  "act1_title": "The Crime Scene at Noon",
+  "when_where": "🕐 1:18 PM on main, March 13th. The kind of afternoon when the city's honest work is supposed to be humming. 🏙️ Omkar was in the terminal, not the conference room. The ytpipeline render_all function was bleeding—arguments from the parent CLI were leaking into child processes like a stool pigeon who couldn't keep his mouth shut.",
+  "act2_title": "The Contamination",
+  "who_whom": "🔍 The render_all function had become a vector. Every flag meant for the parent was poisoning the children spawned downstream. 💀 Omkar had to choose: let the evidence pile up, or isolate the systems before the whole operation collapsed under its own contradictions.",
+  "act3_title": "Surgical Separation",
+  "what_why": "⚙️ He quarantined sys.argv. The parent's flags stayed with the parent. The children could breathe without choking on inherited lies. 🧠 It was elegant damage control—not a fix so much as a wall, keeping one operation's secrets from bleeding into another's. 🔌 The pipeline would render clean now, each process running on its own alibi.",
+  "verdict": "He didn't solve the problem; he just made sure nobody could prove who created it."
+}

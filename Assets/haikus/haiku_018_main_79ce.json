@@ -1,0 +1,19 @@
+{
+  "commit_hash": "c67cf3b8d1551064b863a5582ff6b9eddf1179ce",
+  "short_hash": "79ce",
+  "commit_type": "fix",
+  "commit_msg": "fix(core): simplify sys.path insertion and remove config.json",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 12:01:21 +0530",
+  "chronological_index": 18,
+  "title": "",
+  "subtitle": "",
+  "act1_title": "The Final Erasure",
+  "when_where": "🕐 12:01 PM. Thirteen minutes later. Main branch still. Omkar was going deeper now, into the *core*—the engine room where the real secrets live. 💻 sys.path was the way the application found itself. config.json was the ledger where all the decisions were written down.",
+  "act2_title": "The Infrastructure Confesses",
+  "who_whom": "🔍 The core was the last place a man like Omkar could hide. sys.path insertion was unnecessarily complex—a labyrinth of imports and dependencies. 🧩 config.json was worse: a separate file, a separate truth, a *separate confession*. He was eliminating the need for it, collapsing the system into something leaner, simpler, *more deniable*.",
+  "act3_title": "Simplification as Erasure",
+  "what_why": "⚙️ By simplifying sys.path and removing config.json entirely, Omkar collapsed the infrastructure into fewer moving parts. *Fewer files mean fewer places to hide the truth, but also fewer places to find it*. 🔥 The core was now *self-contained*, needing no external configuration to know who it was or what it wanted. 💀 Simplicity is a kind of violence: it removes the possibility of explanation. The code was now *pure*, which meant it was now *guilty*—no excuses, no middleware, no separate configuration to blame.",
+  "verdict": "He didn't simplify the system; he simplified the crime down to its essential confession."
+}

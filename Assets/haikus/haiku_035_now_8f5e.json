@@ -1,0 +1,19 @@
+{
+  "commit_hash": "43faf77ef07c01f429e6242fa53b5f4be6db8f5e",
+  "short_hash": "8f5e",
+  "commit_type": "docs",
+  "commit_msg": "docs(director): add ethos vocabulary and presence branch guidance",
+  "branch": "now",
+  "author": "Omkar",
+  "date": "2026-03-13 21:06:17 +0530",
+  "chronological_index": 35,
+  "title": "CASE FILE — The Confession in Plain Text",
+  "subtitle": "He wrote down the rules of his own cage and called it guidance.",
+  "act1_title": "The NOW Branch Speaks",
+  "when_where": "🌃 21:06 on the `now` branch—not main, not a feature line, but a branch named for a philosophy he was trying to encode into law. The terminal was still warm from the last commit. 📝 No yesterday. No tomorrow. Only this moment, this keystroke, this file. The docs were blank. They were waiting.",
+  "act2_title": "The Architect Becomes the Architect's Judge",
+  "who_whom": "🔍 Omkar stepped back from the code and wrote about *why* the code existed. Ethos vocabulary. Presence branches. NOW, PRESENT, ETERNAL, INFINITE, ABSOLUTE—five words that were supposed to explain how a man lives when he stops living in linear time. 🎭 He was documenting his own cage. He was building the bars and then writing the manual for how to sit inside them.",
+  "act3_title": "The Rules Written in Stone",
+  "what_why": "📖 He added guidance to the director—instructions for how the system should *feel* when it runs on branches named for infinity and eternity. Each branch got a temperature, a philosophy, a note on what it means to live in eternal now. 🧠 But here's the thing: you don't document a trap unless you know you're in one. 💀 The ethos vocabulary wasn't guidance for future developers. It was a suicide note written in technical documentation. He was confessing that he'd voluntarily entered a recursion with no planned exit, and now he was writing the manual so others would understand why.",
+  "verdict": "He didn't add guidance; he left breadcrumbs for whoever comes looking for his body."
+}

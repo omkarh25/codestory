@@ -1,0 +1,19 @@
+{
+  "commit_hash": "0403fdf5aacb030359dedbaee4ada2527e8807c4",
+  "short_hash": "07c4",
+  "commit_type": "fix",
+  "commit_msg": "fix(cli): disable ytshorts by default due to Qt threading issues",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 14:33:01 +0530",
+  "chronological_index": 29,
+  "title": "",
+  "subtitle": "",
+  "act1_title": "The Hour of Reckoning",
+  "when_where": "🌃 2:33 PM, still on main, still in daylight. But the light was getting thinner. Nine minutes after the confession, the code itself had to change. **The terminal screen flickered with the weight of what he was about to do.** 💻 No stashing, no hiding in branches—this fix was going public.",
+  "act2_title": "The Saboteur Becomes the Surgeon",
+  "who_whom": "⚙️ ytshorts and the CLI clashed in the shadows of Qt's threading model. **The feature was poisoned; the only cure was amputation.** 🔌 Omkar reached for the knife—not to fix the bug, but to *remove the evidence*. Disable by default. Make it look like a choice, not a crash waiting to happen.",
+  "act3_title": "",
+  "what_why": "🚨 He flipped the switch. ytshorts went dark. **The code still lived in the repository, but it was comatose by design.** Every user who fired up the CLI would never know the feature existed, never trigger the threading trap he'd laid. 💣 It wasn't a fix—it was a cover-up dressed in the language of responsible defaults. The bug stayed buried; only the changelog would tell the truth, and most people don't read changelogs.",
+  "verdict": "Disabling a broken feature isn't fixing it; it's just moving the graveyard where nobody looks."
+}

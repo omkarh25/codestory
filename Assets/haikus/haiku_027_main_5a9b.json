@@ -1,0 +1,19 @@
+{
+  "commit_hash": "3061f3e57597b77f5c21417471c239bbf06c5a9b",
+  "short_hash": "5a9b",
+  "commit_type": "fix",
+  "commit_msg": "fix(pipeline): handle missing event loop in fetch_actions",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 14:18:16 +0530",
+  "chronological_index": 27,
+  "title": "CASE FILE — The Loop That Wouldn't Close",
+  "subtitle": "The event loop was missing. The pipeline was broken. The alibi was falling apart.",
+  "act1_title": "Exposure at 2:18 PM",
+  "when_where": "🌆 2:18 PM on main, the moment the system started to crack. The fetch_actions pipeline had gone silent—no event loop to drive it, no heartbeat, just dead air. 🔦 Omkar saw the error logs light up like a confession written in red. The cover was slipping.",
+  "act2_title": "The Architect and the Ruins",
+  "who_whom": "🚨 The pipeline was supposed to be invisible, autonomous, running in the background like a perfect crime. But something had broken—the missing event loop meant the entire operation was exposed, stalled, waiting. 🧩 Omkar had to fix it *now*, before anyone noticed the gap, before the logs told the whole story.",
+  "act3_title": "Patching the Wound",
+  "what_why": "🔧 He didn't fix the pipeline because it was broken; he fixed it because it was *visible* while broken. The missing event loop had turned the invisible machine into a corpse on the table, and corpses ask questions. 💀 Every line of the fix was damage control—handle the missing loop, smooth over the error, make it work again so it could go back to working in the dark. 🧠 But he knew now that systems fail. That the crime has cracks. That eventually, the loop always breaks.",
+  "verdict": "He didn't repair the pipeline; he buried the evidence before the investigation could begin."
+}

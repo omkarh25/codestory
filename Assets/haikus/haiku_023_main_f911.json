@@ -1,0 +1,19 @@
+{
+  "commit_hash": "29bbde1b846e97c01951f102ec3765826f2af911",
+  "short_hash": "f911",
+  "commit_type": "fix",
+  "commit_msg": "fix: pass db-path to ytpipeline from render_all, add --db-path flag",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 13:20:53 +0530",
+  "chronological_index": 23,
+  "title": "CASE FILE — The Handoff",
+  "subtitle": "He built a bridge so the pipeline could find its way home—if it remembered where home was.",
+  "act1_title": "Two Minutes Later",
+  "when_where": "🕐 1:20 PM, still on main, still in the same terminal session. 📝 The isolation was done. Now came the real work: making sure ytpipeline had what it needed to survive outside the parent's protection. The db-path had to move like contraband, hand to hand, function to function.",
+  "act2_title": "The Inheritance",
+  "who_whom": "🔍 render_all held the database path—the one piece of truth that mattered. 🗂️ The ytpipeline child process needed it, but couldn't ask the parent directly anymore. Omkar had to architect the handoff: a --db-path flag, explicit and undeniable.",
+  "act3_title": "The Path is Passed",
+  "what_why": "⚙️ He added the flag. He threaded the needle. Now render_all could hand the db-path to ytpipeline like a dying man passing his wallet to his son. 💻 No more guessing. No more inheritance of poison. Each process knew exactly where its data lived. 🧠 It was clean. It was deliberate. It was the kind of fix that only works if you've already accepted that the original design was rotten.",
+  "verdict": "He didn't trust the system to work; he just made sure it couldn't lie about why it failed."
+}

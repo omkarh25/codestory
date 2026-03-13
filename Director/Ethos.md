@@ -1,4 +1,4 @@
-# The Ethos — codeStory is a NOW Machine
+x# The Ethos — codeStory is a NOW Machine
 
 > *"The past is evidence. The future is speculation. NOW is the only real commit."*
 

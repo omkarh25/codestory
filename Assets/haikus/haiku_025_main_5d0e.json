@@ -1,0 +1,19 @@
+{
+  "commit_hash": "e5b4cdfc826d881952e2f9f342633c1842b15d0e",
+  "short_hash": "5d0e",
+  "commit_type": "docs",
+  "commit_msg": "docs(haiku-director): add emoji guidance and html rendering for act bodies",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 13:46:27 +0530",
+  "chronological_index": 25,
+  "title": "CASE FILE — The Manual of Sins",
+  "subtitle": "He wrote down exactly how to build the machine, step by step, so others could follow.",
+  "act1_title": "Daylight Confession",
+  "when_where": "🕐 1:46 PM on main, the hour when documentation feels like virtue. The office was quiet—too quiet—the kind of silence that comes after you've already said too much. 📋 Omkar sat at his terminal, not writing code anymore, but *explaining* code, turning the invisible crime into a manual anyone could read.",
+  "act2_title": "The Witness Speaks",
+  "who_whom": "🔍 The haiku-director system was his creation, his confession, his blueprint for chaos. Now he was annotating it—emoji guidance, HTML rendering, every technical detail exposed under fluorescent light. 🎭 He wasn't hiding anymore. He was teaching.",
+  "act3_title": "Words as Evidence",
+  "what_why": "📝 Every line of documentation was a breadcrumb leading back to him. He added emoji guidance to make the act bodies *cinematic*, as if packaging the crime in prettier paper made it less of a crime. 🧠 The HTML rendering instructions were meticulous—he wanted others to see it the way he saw it, to feel the noir weight of every commit. 💀 Documentation is confession with a footnote. He had just written his own indictment and filed it under 'helpful.'",
+  "verdict": "He didn't confess to the crime; he published a how-to guide."
+}

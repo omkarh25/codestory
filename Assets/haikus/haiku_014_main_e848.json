@@ -1,0 +1,19 @@
+{
+  "commit_hash": "cac3eafee7539d8d61be18daad4c3f96c950e848",
+  "short_hash": "e848",
+  "commit_type": "fix",
+  "commit_msg": "fix: add entry point wrapper and update config handling",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 11:10:09 +0530",
+  "chronological_index": 14,
+  "title": "",
+  "subtitle": "",
+  "act1_title": "Ten Seconds Later, The Cracks Show",
+  "when_where": "🕐 11:10 AM, just ten seconds after the last confession. Still main branch, still daylight, but now the foundation he'd poured was already buckling. 🚨 The entry point was broken. The config was screaming. He had maybe ninety seconds to fix it before someone noticed.",
+  "act2_title": "The Desperate Patch",
+  "who_whom": "🔧 Omkar versus his own oversight—a race against the next developer's pull request. The entry point wrapper was supposed to be the guardian at the gate, the thing that would catch errors before they fell through. 💔 Instead, it was the evidence of his panic, the scar tissue of a fix applied in real time.",
+  "act3_title": "Sealing the Wound",
+  "what_why": "⚙️ He wrapped the entry point, rewrote the config handling, and pushed it back to main before anyone could see the gap. 🩹 But a fix applied in anger always leaves marks—the code was tight now, defensive, the way a man's jaw gets when he's lying. 🔒 The system would work, but it would work *despite* him, not *because* of him. 💭 He'd bought himself ten more minutes of anonymity, but the pattern was already forming: break, fix, repeat.",
+  "verdict": "He didn't solve the problem; he just moved the deadline closer."
+}

@@ -1,0 +1,19 @@
+{
+  "commit_hash": "b1b023beeffc50738f66e21344f251ead4bfbfdd",
+  "short_hash": "bfdd",
+  "commit_type": "fix",
+  "commit_msg": "fix(viewer): remove duplicate imports and dead code",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 11:49:15 +0530",
+  "chronological_index": 17,
+  "title": "",
+  "subtitle": "",
+  "act1_title": "Thirty Seconds Later",
+  "when_where": "🌃 11:49 AM. Still main. The terminal still warm from the last confession. Omkar moved fast now—too fast—cleaning up the mess he'd just made. 🔦 Not the mess of broken code, but the mess of *evidence*. Duplicate imports screamed carelessness. Dead code smelled like panic.",
+  "act2_title": "The Cover-Up Begins",
+  "who_whom": "🗂️ The viewer's dead code was a liability—lines that served no purpose, imports that came in twice like a stutter. Omkar was erasing the stutter, smoothing the surface. 🔥 He wasn't fixing a bug; he was making the crime scene look intentional.",
+  "act3_title": "Cleanliness as Concealment",
+  "what_why": "⚙️ Duplicate imports removed. Dead code stripped. The viewer was suddenly *pristine*, professional, a model of efficiency. 💀 But the real work happened in the margins: *by removing what was obviously wrong, he made everything else look right*. 🧠 A reader examining the code would see only craft now, not the trembling hand that wrote it. The duplication was gone, but the fear remained—encoded in every deletion.",
+  "verdict": "He didn't clean the code; he cleaned his fingerprints off the weapon."
+}

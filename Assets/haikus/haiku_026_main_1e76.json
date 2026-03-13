@@ -1,0 +1,19 @@
+{
+  "commit_hash": "cf89d66884bedde67fc4c957786fe722fc291e76",
+  "short_hash": "1e76",
+  "commit_type": "feat",
+  "commit_msg": "feat(ui): add keyboard acceleration and focus management",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 14:03:12 +0530",
+  "chronological_index": 26,
+  "title": "CASE FILE — Fingers Made Faster",
+  "subtitle": "Keyboard acceleration: the difference between thinking about escape and actually running.",
+  "act1_title": "The Edge of Speed",
+  "when_where": "🕑 2:03 PM, same branch, same afternoon. The UI was already dangerous, but now Omkar gave it *velocity*. ⌨️ Keyboard shortcuts, focus management—tools for the impatient, the panicked, the man who knew he didn't have much time left before someone noticed.",
+  "act2_title": "The Operator and His Tool",
+  "who_whom": "🔥 The user and the interface were no longer separate. Omkar had fused them—every keystroke now carried momentum, every focus shift was a decision made before the brain could second-guess it. 🎯 The app didn't just respond to input anymore; it anticipated it, pulled the user forward faster than they meant to go.",
+  "act3_title": "Momentum Without Mercy",
+  "what_why": "⚙️ He added keyboard acceleration because slowness was his enemy. Every millisecond of lag was a chance for hesitation, for doubt, for someone to ask 'why are you running this so fast?' 🧠 Focus management meant the app would *decide* where your attention went next, not you. 💀 He wasn't building a feature; he was building a escape velocity. The faster the interface, the less time you have to think about what you're actually doing.",
+  "verdict": "He didn't accelerate the keyboard; he accelerated the forgetting."
+}

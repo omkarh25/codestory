@@ -1,0 +1,19 @@
+{
+  "commit_hash": "036169b2eeccae57b7b2beb7e769634d94eed278",
+  "short_hash": "d278",
+  "commit_type": "refactor",
+  "commit_msg": "refactor(pipeline): simplify async event loop handling",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 12:19:26 +0530",
+  "chronological_index": 19,
+  "title": "CASE FILE — The Architect Unmakes Himself",
+  "subtitle": "Midday on main, he tore out the guts of the machine and put it back together backwards.",
+  "act1_title": "High Noon Deconstruction",
+  "when_where": "🕐 12:19 PM, main branch, the hour when the city stops pretending to work. The async event loop had been running like a corrupt bureaucrat for months—layers of delegation, chains of command, nobody knowing who was really in charge. 🏙️ Omkar sat with the codebase spread across three monitors like a corpse on a slab.",
+  "act2_title": "The Surgeon and the System",
+  "who_whom": "🔍 The pipeline was acting on itself, a recursive nightmare of callbacks stacked on promises stacked on coroutines. He was the only one who could see how deep the rot went. 💀 The refactor wasn't mercy—it was an amputation. He was simplifying by erasure, which meant something had to die for the machine to breathe again.",
+  "act3_title": "Burning Down to Bone",
+  "what_why": "⚙️ He stripped the async event loop to its skeleton, ripped out the ornamental complexity, the defensive layers that had accumulated like scar tissue. Every line he deleted was a confession that the old architecture was a lie. 🔥 The pipeline ran cleaner now, but only because he'd removed everything that wasn't essential—including, maybe, the parts that kept him sane. 🧠 Simplicity looks like intelligence until you realize it's just desperation dressed up in minimalism.",
+  "verdict": "He didn't refactor the code; he refactored his own tolerance for chaos."
+}

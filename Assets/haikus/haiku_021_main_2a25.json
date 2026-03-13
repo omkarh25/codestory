@@ -1,0 +1,19 @@
+{
+  "commit_hash": "7e497f6d0f7d416157219bc5aeec25e9687d2a25",
+  "short_hash": "2a25",
+  "commit_type": "feat",
+  "commit_msg": "feat(release): Director's Cut pipeline — BGM, storyboard, casefile MD, render profiles",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 13:15:24 +0530",
+  "chronological_index": 21,
+  "title": "CASE FILE — The Director's Cut Goes Live",
+  "subtitle": "Fifty-six minutes later, the machine woke up and started filming.",
+  "act1_title": "The Studio Materializes",
+  "when_where": "☀️ 1:15 PM, main branch, the afternoon has teeth now. The sun's high enough that nobody can hide in shadows. 🎬 Omkar's terminal had become a production studio—not metaphorically, not aspirationally, but in actual code. The pipeline was no longer theoretical; it was *real*, compiled, ready to execute.",
+  "act2_title": "The Machine Becomes the Witness",
+  "who_whom": "🎥 The Director's Cut pipeline was now acting on the codebase itself: BGM automation, storyboard generation, casefile markdown rendering, render profiles locked and loaded. 🧠 This wasn't a tool anymore; it was a confession machine, and Omkar had just plugged himself in as both the director and the subject. 💀 The feature was designed to capture, to record, to make permanent what was previously just ephemeral terminal noise.",
+  "act3_title": "The Reckoning Automates",
+  "what_why": "⚙️ He released the Director's Cut pipeline—a full production suite that would automatically generate cinematic case files from every commit, every push, every confession. 🎞️ The BGM would score his crimes; the storyboards would visualize his descent; the casefile markdown would preserve it all for posterity. 🔥 By automating the documentation of his own work, he'd created a machine that would judge him faster than any human ever could. 📹 The code was no longer a tool; it was a witness that never blinks, never sleeps, never forgets.",
+  "verdict": "He didn't build a release pipeline; he built his own monument."
+}

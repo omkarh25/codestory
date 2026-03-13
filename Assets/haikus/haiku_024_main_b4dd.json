@@ -1,0 +1,19 @@
+{
+  "commit_hash": "1935a910885d6cd76563513e37a1f1896999b4dd",
+  "short_hash": "b4dd",
+  "commit_type": "docs",
+  "commit_msg": "docs(casefiles): archive case files 004-007 — the pipeline confessions",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 13:24:45 +0530",
+  "chronological_index": 24,
+  "title": "CASE FILE — The Ledger",
+  "subtitle": "He filed the confession under 'docs' and called it case closure.",
+  "act1_title": "The Archiving Hour",
+  "when_where": "🕐 1:24 PM. Still main. Still March 13th. 📚 The work was done—the pipeline was fixed, the arguments isolated, the paths explicit. Now came the part that separated the professional from the amateur: he documented it. He archived cases 004-007, the pipeline confessions, each one a breadcrumb trail leading straight back to the original sin.",
+  "act2_title": "The Record Keeper",
+  "who_whom": "🔍 Omkar and the case files. They were evidence now—four sealed documents that detailed how the pipeline had been broken and how he'd put it back together. 🗂️ By archiving them, he wasn't hiding the crime; he was canonizing it. The confessions would live forever in the git log, dated and attributed, impossible to deny.",
+  "act3_title": "The Documentation",
+  "what_why": "📝 He wrote it all down. Cases 004-007, the pipeline confessions, now archived under docs. 💀 It was the oldest trick in the book: you can't be convicted of something you admitted to in writing. 🧠 The documentation was both shield and sword—proof of competence and proof of culpability, depending on who was reading. 📊 By the time anyone looked back, the narrative would be his: not a man covering his tracks, but an engineer documenting a system's evolution.",
+  "verdict": "He didn't solve the crime; he just made sure he'd be remembered as the one who confessed to it first."
+}
