@@ -1,10 +1,28 @@
 # 🎬 codeStory
 
-> *"Every commit is a confession. Every repo is a crime scene. codeStory is the detective."*
+> *Your repository is not a history. It is a continuous present.*
 
-**codeStory** reads your git history and turns it into a cinematic noir crime thriller — commit by commit, act by act.
+codeStory reads your git commits and renders them as what they always were —
+moments. Each commit a case file. Each diff a confession still in progress.
+Each branch a state of mind.
 
-Powered by **LLMs** and rendered in a **PyQt6 dark UI**, each git commit becomes a 3-act case file narrated by MAX THE DESTROYER. Ten confessions become an episode. The repo becomes a story.
+`codestory --now` is not a feature. It is the center.
+Everything else orbits it.
+
+---
+
+## Modes of Presence
+
+Every feature is a mode of presence. Commits are frozen NOWs. Episodes are witnessed NOWs. The branches aren't just git branches — they're states of consciousness.
+
+| Command | Mode | What it witnesses |
+|---------|------|-------------------|
+| `codestory --now` | NOW | This exact moment — diff, intent, momentum |
+| `codestory --play` | PAST | Frozen moments — your commit history as noir |
+| *(coming)* | PRESENT | Active work window awareness |
+| *(coming)* | ETERNAL | Patterns that repeat across time |
+| *(coming)* | INFINITE | Full repo lifetime narrative |
+| *(coming)* | ABSOLUTE | Final distillation, no context needed |
 
 ---
 
@@ -137,10 +155,11 @@ codestory --reset-db
 codestory --generate-haikus --generate-episodes --play
 ```
 
-### ⚡ Now — Clearing the Mind
+### ⚡ Now — The Center
 
-`codestory --now` is a different kind of command. It doesn't read past history.  
-It reads **right now** — and synthesises one clarity haiku from everything in front of you.
+`codestory --now` is not a feature. It is the still point around which everything else orbits.
+
+It doesn't read past history. It reads **right now** — and synthesises one clarity haiku from everything in front of you.
 
 ```bash
 # Capture this exact moment — what you're doing, what's pending, what changed
@@ -269,11 +288,12 @@ The LLM narrator persona lives in `Director/`:
 
 | File | Purpose |
 |------|---------|
-| `Director/HaikuDirector.md` | MAX THE DESTROYER's brief for haiku generation — **do not modify** |
+| `Director/Ethos.md` | ⚡ The philosophical spine — this app is a NOW machine |
+| `Director/Now.md` | ⚡ **The center** — The "still point" prompt |
+| `Director/HaikuDirector.md` | MAX THE DESTROYER's brief for haiku generation |
 | `Director/EpisodeDirector.md` | MAX's brief for episodic act writing |
 | `Director/RepoStory.md` | Origin story preface — the baseline context for all episodes |
-| `Director/ReleaseCutDirector.md` | Cinematic storyboard generator. Takes episode + case files, produces JSON shot list for video renderer |
-| `Director/Now.md` | ⚡ **NEW** — The "still point" prompt. Guides MAX to synthesise a clarity haiku from TODO + diff + recent commits |
+| `Director/ReleaseCutDirector.md` | Cinematic storyboard generator |
 
 Edit these files to tune tone, lexicon, or output format without touching code.
 
@@ -341,9 +361,9 @@ See `Assets/audio/README.md` for free track sources.
 ```
 codestory.py / src/codestory/__main__.py    ← CLI entry point
 ├── src/codestory/pipeline/
+│   ├── now.py            ← ⚡ NOW pipeline (TODO + diff + commits → LLM → moments DB)
 │   ├── haiku.py          ← Haiku pipeline (git log → LLM → DB)
 │   ├── episode.py        ← Episode pipeline (DB haikus → LLM → DB)
-│   ├── now.py            ← ⚡ Now pipeline (TODO + diff + commits → LLM → moments DB)
 │   └── git.py            ← Git log reader + crime lexicon
 ├── src/codestory/render/
 │   ├── video.py          ← Render facade (delegates to ytpipeline)
@@ -355,18 +375,19 @@ codestory.py / src/codestory/__main__.py    ← CLI entry point
 │   └── qt_viewer.py      ← PyQt6 viewer (haiku + episode + ⚡ moments modes)
 ├── src/codestory/core/
 │   └── database.py       ← SQLite DB (haiku_commits, chronicle_episodes, ⚡ now_moments)
-├── config.json           ← All settings (add "now_commits": 3 to control depth)
+├── config.json           ← All settings (ethos config + modes)
 ├── llm.env               ← API keys (gitignored)
 ├── Director/
+│   ├── Ethos.md          ← The philosophical spine (NOW machine)
+│   ├── Now.md            ← ⚡ The center — clarity haiku brief
 │   ├── HaikuDirector.md        ← Haiku LLM brief
 │   ├── EpisodeDirector.md      ← Episode LLM brief
 │   ├── RepoStory.md            ← Origin story preface
-│   ├── ReleaseCutDirector.md   ← Storyboard shot-list generator
-│   └── Now.md                  ← ⚡ Now clarity haiku brief
+│   └── ReleaseCutDirector.md   ← Storyboard shot-list generator
 └── Assets/
-    ├── YtShorts/         ← Rendered MP4 output + casefile .md files
-    ├── audio/            ← BGM tracks (see README inside)
-    └── haikuJSON/        ← Haiku JSON files
+     ├── YtShorts/         ← Rendered MP4 output + casefile .md files
+     ├── audio/            ← BGM tracks (see README inside)
+     └── haikuJSON/        ← Haiku JSON files
 ```
 
 ---
@@ -408,6 +429,20 @@ codestory --generate-haikus --generate-episodes --generate-storyboard --generate
 ---
 
 ## Future Directions
+
+### The Ethos Branch Roadmap
+
+Future development on codeStory follows an intentional naming vocabulary. Branches are states of consciousness:
+
+| Branch | Mode | What it unlocks |
+|--------|------|-----------------|
+| `NOW` *(active)* | Present moment capture | `--now` — the center |
+| `PRESENT` | Active work window awareness | Continuous ambient context (live diff watcher) |
+| `ETERNAL` | Pattern recognition across time | Cross-session insight — what keeps recurring? |
+| `INFINITE` | Full repo lifetime narrative | Multi-repo, longitudinal story arcs |
+| `ABSOLUTE` | Final distillation | Minimal mode — one truth, no noise |
+
+### Other Directions
 
 - **Tier 3 — Remotion keynote render**: React + Remotion for Apple-style release trailers
 - **Multi-repo**: track multiple repos in one DB

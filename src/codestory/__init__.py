@@ -1,3 +1,6 @@
+# This app has one job: witness the present moment.
+# Everything else is archaeology.
+
 """
 codeStory - Turn your git history into a cinematic noir crime thriller.
 

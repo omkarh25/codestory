@@ -1,4 +1,29 @@
 {
+    "app": {
+        "name": "codeStory",
+        "ethos": "now",
+        "center": "--now"
+    },
+    "modes": {
+        "now": { "active": true, "branch_pattern": "now" },
+        "present": { "active": false, "branch_pattern": "present" },
+        "eternal": { "active": false, "branch_pattern": "eternal" },
+        "infinite": { "active": false, "branch_pattern": "infinite" },
+        "absolute": { "active": false, "branch_pattern": "absolute" }
+    },
+    "now": {
+        "todo_paths": [".codestory/TODO.md", "TODO.md", "TODO"],
+        "commits_lookback": 3,
+        "director": "Director/Now.md",
+        "ethos_branches": ["NOW", "PRESENT", "ETERNAL", "INFINITE", "ABSOLUTE"],
+        "note": "NOW is the center. Every other branch is archaeology."
+    },
+    "viewer": {
+        "parallax_on_verdict": true,
+        "parallax_duration_ms": 1800,
+        "typewriter_speed_ms": 28,
+        "center_feature": "now"
+    },
     "tmChronicles": {
         "repo_path": "/Users/omkar/Desktop/Community/codeStory",
         "max_haiku_per_run": 12,

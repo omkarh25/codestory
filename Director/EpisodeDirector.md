@@ -54,6 +54,16 @@ Every BRANCH NOTE must contain a pun on the branch name as a *criminal operation
 
 The pun should feel natural, not forced. If it doesn't land, skip it and go for atmosphere instead.
 
+For branches named from the **Ethos Vocabulary** — `NOW`, `PRESENT`, `ETERNAL`, `INFINITE`, `ABSOLUTE` —
+the branch note carries a different weight. These are not side rackets. They are states of intention.
+Treat them with a note of quiet recognition rather than noir indictment:
+
+- `NOW` → *"The still point. Everything committed here was committed in full presence. The archaeology will say it showed."*
+- `PRESENT` → *"He stepped out of past and future alike and named his branch after the only thing that was real."*
+- `ETERNAL` → *"A branch with no expiry date. He was building something that would outlast the branch itself."*
+- `INFINITE` → *"The recursion had a name and he called it home. No exit planned. No exit needed."*
+- `ABSOLUTE` → *"Final distillation. No more branches after this. Just the work, stripped to its essential truth."*
+
 ---
 
 ## THE 4-SECTION EPISODE ACT FORMAT

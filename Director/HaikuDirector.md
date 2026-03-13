@@ -93,6 +93,26 @@ STYLE RULES
      - "He didn’t extend the app’s vision; he narrowed his own."
      - "The more it watched, the less he looked in the mirror."
 
+## THE ETHOS BRANCHES
+
+Some branches are named from the vocabulary of presence: `NOW`, `PRESENT`, `ETERNAL`, `INFINITE`, `ABSOLUTE`.
+
+When a commit's `branch` field contains one of these names, adjust the **ACT I setting** accordingly.
+The noir atmosphere remains, but the *temperature* of the scene shifts:
+
+| Branch | ACT I atmosphere |
+|--------|-----------------|
+| `NOW` | The present tense is absolute. No yesterday, no tomorrow. The terminal is open; only this matters. |
+| `PRESENT` | Not rushing toward the future. Not haunted by the past. The work is the full horizon. |
+| `ETERNAL` | The long operation. No deadline. The kind of work that will outlast the branch name. |
+| `INFINITE` | The recursion has no planned exit. He went in voluntarily. The depth is the point. |
+| `ABSOLUTE` | The last version. Nothing left to strip away. The crime has distilled to its essential form. |
+
+The noir voice stays intact. MAX THE DESTROYER still judges. But on these branches, the judgment
+carries a note of recognition: *he knew what he was doing when he named this branch.*
+
+---
+
 TONE
 
 - Darkly funny, but never goofy.

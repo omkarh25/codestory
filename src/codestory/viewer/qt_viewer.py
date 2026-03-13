@@ -104,7 +104,12 @@ GIT_CRIME_LEXICON_DISPLAY = {
     "hotfix": "2 AM damage control — Emergency. No witnesses.",
     "init": "The origin — The first sin.",
     "wip": "The unfinished crime — Left at the scene, half-done",
-    "now": "The still point — Before the next crime",
+    # Presence branches — the ethos vocabulary
+    "now": "The still point — Full presence. Nothing outside this moment.",
+    "present": "Active awareness — The work window is open. Not past. Not future.",
+    "eternal": "The long operation — Building something that outlasts the branch.",
+    "infinite": "Deep recursion — No exit planned. No exit needed.",
+    "absolute": "Final distillation — Nothing left to remove. The work is complete.",
 }
 
 
@@ -1066,20 +1071,35 @@ class EpisodeViewerWidget(QWidget):
 # ─── Empty + Loading widgets ──────────────────────────────────────────────────
 
 class EmptyStateWidget(QWidget):
-    """Shown when no haikus exist yet."""
+    """Shown when no haikus exist yet. NOW mode is suggested first — it is the center."""
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setStyleSheet(f"background:{BG_DARK};")
         l = QVBoxLayout(self)
         l.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon = _label("🎬", TEXT_WHITE, 48, align=Qt.AlignmentFlag.AlignCenter)
+
+        # NOW is the center — suggest it first
+        now_lbl = _label("⚡", TEXT_VERDICT_L, 48, align=Qt.AlignmentFlag.AlignCenter)
+        now_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        l.addWidget(now_lbl)
+        l.addSpacing(12)
+        now_msg = _label(
+            "Press  N  to capture this moment — your present state as a clarity haiku.",
+            TEXT_VERDICT_L, 14, align=Qt.AlignmentFlag.AlignCenter,
+        )
+        now_msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        l.addWidget(now_msg)
+        l.addSpacing(28)
+
+        # Then the haiku chronicle
+        icon = _label("🎬", TEXT_HASH, 28, align=Qt.AlignmentFlag.AlignCenter)
         icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         l.addWidget(icon)
-        l.addSpacing(20)
+        l.addSpacing(8)
         msg = _label(
             "No haikus yet.\n\nPress  G  to generate haikus from your git history.",
-            TEXT_SUBTITLE, 15, align=Qt.AlignmentFlag.AlignCenter,
+            TEXT_SUBTITLE, 13, align=Qt.AlignmentFlag.AlignCenter,
         )
         msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
         l.addWidget(msg)
@@ -1205,7 +1225,7 @@ class MainWindow(QMainWindow):
 
     def _build_ui(self) -> None:
         """Build the QStackedWidget with all viewer panels."""
-        self.setWindowTitle("codeStory — The Chronicles")
+        self.setWindowTitle("codeStory — ⚡ NOW")
         self.setMinimumSize(900, 600)
         self.setStyleSheet(f"background:{BG_DARK};")
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)

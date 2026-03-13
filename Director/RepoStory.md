@@ -91,3 +91,45 @@ The investigation is ongoing. The evidence accumulates. Every commit is a new co
 ---
 
 *"He built the detective. He left all the evidence. He still seemed surprised by the verdict."*
+
+---
+
+## THE STILL POINT
+
+There is one thing the investigation missed.
+
+Between every commit in this repo — in every repo — there is a moment that never gets logged.
+The moment before the commit. The moment when the diff exists but hasn't been signed.
+The moment when the TODO is open and the cursor is blinking and nothing has been decided yet.
+
+That moment is the only truly free moment in the entire git log.
+
+codeStory was built, ostensibly, to narrate the past. But `codestory --now` is something else.
+It reads that pre-commit moment. It takes the open diff, the unfinished TODO, the recent confessions —
+and synthesises them into one moment of clarity. Not a verdict about the past. A lantern for the present.
+
+**The haiku pipeline is archaeology. `--now` is presence.**
+
+The DollyZoom verdict that closes each NOW moment is not just an animation.
+It is the still point itself — the letter spacing expanding, the space breathing,
+the font growing to fill the silence. The moment the developer stops performing productivity
+and actually sees what's in front of them.
+
+That is what this repo is, underneath everything else.
+Not a confessional booth. Not a detective agency.
+
+A NOW machine.
+
+The branch names say it plainly: `NOW`. `PRESENT`. `ETERNAL`. `INFINITE`. `ABSOLUTE`.
+These are not git operations. They are a practice.
+When you name a branch after a state of consciousness, you are not just organizing code.
+You are stating an intention about who you are being while you write it.
+
+The investigation is ongoing. The evidence accumulates. Every commit is a new confession.
+But between every confession and the next — there is the still point.
+
+That is the center of this app.
+
+---
+
+*"He built the detective. He left all the evidence. And then, one day, he ran `--now` and understood what the detective had always been asking him."*

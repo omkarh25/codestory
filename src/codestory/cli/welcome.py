@@ -48,8 +48,10 @@ SMALL_BANNER = r"""
 """
 
 
-# Tagline variants for variety
+# Tagline variants for variety — the first three are NOW-ethos oriented (subtle center)
 TAGLINES = [
+    '"⚡ NOW is the center. Everything else is archaeology."',
+    '"The still point before the next commit."',
     '"Every commit is a confession. Every repo is a crime scene."',
     '"He built the detective. He left all the evidence."',
     '"The investigation is ongoing. The evidence accumulates."',
@@ -126,8 +128,10 @@ def print_welcome(
      Copy llm.env.example to llm.env and add your API key
 """)
 
-    # Footer
+    # Footer — subtle NOW nudge
     print("\n" + "─" * 78)
+    print("  ⚡  Run  codestory --now  — your present moment awaits.")
+    print("─" * 78)
 
 
 def print_status(

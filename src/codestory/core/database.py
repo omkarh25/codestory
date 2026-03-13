@@ -150,6 +150,7 @@ class DatabaseManager:
                     todo_snapshot     TEXT,
                     diff_snapshot     TEXT,
                     commits_snapshot  TEXT,
+                    ethos_tier        TEXT DEFAULT 'NOW',
                     is_hearted        INTEGER DEFAULT 0,
                     is_starred        INTEGER DEFAULT 0,
                     is_saved          INTEGER DEFAULT 0,
@@ -165,8 +166,50 @@ class DatabaseManager:
             """)
             conn.commit()
             LOGGER.debug("Database schema initialized")
+
+            # ── Migration: add ethos_tier to existing DBs that predate this column ──
+            try:
+                conn.execute(
+                    "ALTER TABLE now_moments ADD COLUMN ethos_tier TEXT DEFAULT 'NOW'"
+                )
+                conn.commit()
+                LOGGER.info("Migration: added ethos_tier column to now_moments")
+            except sqlite3.OperationalError:
+                # Column already exists — no action needed
+                pass
         finally:
             conn.close()
+
+    # ==================== ETHOS HELPERS ====================
+
+    # Ordered by specificity — longer branch names matched first
+    _ETHOS_BRANCHES: List[str] = ["ABSOLUTE", "INFINITE", "ETERNAL", "PRESENT", "NOW"]
+
+    @staticmethod
+    def classify_ethos_tier(commits: Optional[List[Dict[str, Any]]] = None) -> str:
+        """
+        Classify the ethos tier of a moment from its recent commits' branch names.
+
+        Checks each commit's branch against the ethos vocabulary:
+        NOW, PRESENT, ETERNAL, INFINITE, ABSOLUTE.
+        Returns the first match found (most recent commit wins).
+        Defaults to 'NOW' when no presence branch is found.
+
+        Args:
+            commits: List of recent commit dicts (each with a 'branch' key).
+
+        Returns:
+            Ethos tier string: one of NOW / PRESENT / ETERNAL / INFINITE / ABSOLUTE.
+        """
+        if not commits:
+            return "NOW"
+        for commit in commits:
+            branch = (commit.get("branch") or "").upper()
+            for tier in DatabaseManager._ETHOS_BRANCHES:
+                if tier in branch:
+                    LOGGER.debug("Ethos tier '%s' matched from branch '%s'", tier, branch)
+                    return tier
+        return "NOW"
 
     # ==================== HAIKU OPERATIONS ====================
 
@@ -572,14 +615,18 @@ class DatabaseManager:
         """
         commits_json = json.dumps(commits_snapshot or [], ensure_ascii=False)
 
+        # Classify which ethos tier this moment was captured on
+        ethos_tier = self.classify_ethos_tier(commits_snapshot)
+        LOGGER.info("Now moment ethos tier: %s", ethos_tier)
+
         conn = self._get_connection()
         try:
             cursor = conn.execute("""
                 INSERT INTO now_moments
                 (captured_at, title, subtitle, act1_title, when_where,
                  act2_title, who_whom, act3_title, what_why, verdict,
-                 todo_snapshot, diff_snapshot, commits_snapshot)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 todo_snapshot, diff_snapshot, commits_snapshot, ethos_tier)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 captured_at,
                 haiku_data.get("title", ""),
@@ -594,11 +641,15 @@ class DatabaseManager:
                 todo_snapshot,
                 diff_snapshot,
                 commits_json,
+                ethos_tier,
             ))
             conn.commit()
 
             moment_id = cursor.lastrowid
-            LOGGER.info("Saved Now moment id=%d: %s", moment_id, haiku_data.get("title", "?"))
+            LOGGER.info(
+                "Saved Now moment id=%d tier=%s: %s",
+                moment_id, ethos_tier, haiku_data.get("title", "?"),
+            )
 
             return {
                 "id":               moment_id,
@@ -615,6 +666,7 @@ class DatabaseManager:
                 "todo_snapshot":    todo_snapshot,
                 "diff_snapshot":    diff_snapshot,
                 "commits_snapshot": commits_json,
+                "ethos_tier":       ethos_tier,
                 "is_hearted":       0,
                 "is_starred":       0,
                 "is_saved":         0,
@@ -663,6 +715,30 @@ class DatabaseManager:
         try:
             row = conn.execute("SELECT COUNT(*) FROM now_moments").fetchone()
             return row[0] if row else 0
+        finally:
+            conn.close()
+
+    def get_moments_by_ethos(self, tier: str) -> List[Dict[str, Any]]:
+        """
+        Get all Now moments captured on a specific ethos tier branch.
+
+        Useful for filtering the journal by branch vocabulary:
+        NOW, PRESENT, ETERNAL, INFINITE, ABSOLUTE.
+
+        Args:
+            tier: Ethos tier string (case-insensitive).
+
+        Returns:
+            List of moment dicts ordered by capture time (oldest first).
+        """
+        conn = self._get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT * FROM now_moments WHERE UPPER(ethos_tier) = ? ORDER BY captured_at ASC",
+                (tier.upper(),),
+            ).fetchall()
+            LOGGER.debug("get_moments_by_ethos tier=%s: %d results", tier, len(rows))
+            return [dict(row) for row in rows]
         finally:
             conn.close()
 
