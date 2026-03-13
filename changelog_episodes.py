@@ -811,7 +811,13 @@ def fetch_actions(config: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any
     """
     cfg = load_config(config)
     try:
-        loop = asyncio.get_event_loop()
+        # Try to get existing event loop, create new one if not available
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # No event loop exists for this thread - create a new one
+            loop = asyncio.new_event_loop()
+        
         if loop.is_running():
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as pool:
