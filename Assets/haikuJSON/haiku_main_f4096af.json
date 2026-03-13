@@ -1,0 +1,17 @@
+{
+  "commit_hash": "f4096aff64d7a09809bc750370321cbc8a421d38",
+  "commit_type": "chore",
+  "commit_msg": "chore: init codeStory project scaffold",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:04:36 +0530",
+  "title": "CASE FILE — The Blank Canvas",
+  "subtitle": "9:04 AM on main. He opened the door to a room that didn't exist yet.",
+  "act1_title": "Three Days, No Sleep",
+  "when_where": "March 13th, 09:04 AM. Main branch, the fresh hours when ambition still feels clean. The scaffold stands bare—directories, config files, the skeleton of something that hasn't yet learned to want.",
+  "act2_title": "The Architect Alone",
+  "who_whom": "Omkar vs. himself. He was building the frame for a machine that would eventually document every frame of his own unraveling. The project was innocent then. He didn't know what it would become.",
+  "act3_title": "The Foundation Poured",
+  "what_why": "He laid down the first stones: folder structure, boilerplate, the basic infrastructure for something called codeStory. Three days without sleep, he said, but the truth was darker—he was already running from something, and this project was the first door he could lock himself behind. Every file he created was a brick in a wall between him and whatever he was trying to forget.",
+  "verdict": "He didn't build a project. He built a bunker."
+}

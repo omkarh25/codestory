@@ -1,0 +1,17 @@
+{
+  "commit_hash": "8d5b87f3ea98b6ad83f3ad835b867213889fe819",
+  "commit_type": "feat",
+  "commit_msg": "feat: implement git haiku pipeline with configurable depth",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "title": "CASE FILE — The Haiku Trap",
+  "subtitle": "He taught the machine to distill confession into seventeen syllables.",
+  "act1_title": "Morning on Main Street",
+  "when_where": "9:05 AM, March 13th. Main branch, daylight hours, the kind of time when honest developers pretend to be working. Omkar's terminal glowed in the office light—no blinds, no excuses, just code and the weight of intention.",
+  "act2_title": "The Weapon Takes Shape",
+  "who_whom": "A pipeline emerged from his fingers: configurable depth, layered extraction, the ability to make any git history sing in measured verse. The app wasn't just logging anymore; it was *judging*, one haiku at a time, forcing every commit into a cage of syllables where nothing could hide.",
+  "act3_title": "The First Compression",
+  "what_why": "He built the depth parameter to let the system choose how far back to look, how deep to dig. Each configurable level was another choice to hide behind. The haiku format was perfect—beautiful enough to seem innocent, constrained enough to feel like truth. He knew what he was doing. Every developer who ran this would confess without knowing they were confessing.",
+  "verdict": "He didn't build a tool; he built a confessional that looks like poetry."
+}

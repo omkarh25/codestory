@@ -1,0 +1,17 @@
+{
+  "commit_hash": "1c91115b02813480ac51d695801286e20bcf7713",
+  "commit_type": "feat",
+  "commit_msg": "feat: implement episode pipeline with RepoStory baseline context",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "title": "CASE FILE — The Story That Tells Itself",
+  "subtitle": "He gave the repository a voice, and it started singing about him.",
+  "act1_title": "",
+  "when_where": "Same morning. Same branch. The office hadn't changed, but the architecture had. A new pipeline sat waiting—episode-based, narrative-driven, with RepoStory as the baseline context. The app was no longer a collection of commits; it was a *story*, and every developer was a character whether they knew it or not.",
+  "act2_title": "The Narrator's Gambit",
+  "who_whom": "Omkar versus the repository itself—a dangerous game where the loser is whoever runs the code first. RepoStory became the lens through which every operation was reframed as narrative, every branch a plot twist, every merge a climax. The app now had agency. It could tell you who you were by reading what you'd built.",
+  "act3_title": "The Episode Unfolds",
+  "what_why": "He implemented the episode pipeline knowing full well that narrative is more dangerous than data. Data can be denied; stories can't. They stick in the mind, reshape memory, make you see yourself as the protagonist of a crime you didn't think you were committing. Each episode would be a chapter in the developer's unraveling, a forced autobiography written in git objects and timestamps.",
+  "verdict": "He didn't build a pipeline; he built a mirror that won't let you look away."
+}

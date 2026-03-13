@@ -1,0 +1,17 @@
+{
+  "commit_hash": "5baafe0932af59514cbfe3253a4627bd56b1da36",
+  "commit_type": "feat",
+  "commit_msg": "feat: build cinematic PyQt6 viewer — the 3-act haiku player",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "title": "CASE FILE — The Haiku Made Flesh",
+  "subtitle": "He turned three lines into a window. Now he could watch himself watching.",
+  "act1_title": "Morning on Main Street",
+  "when_where": "9:05 AM on the main branch, March 13th. Omkar's fingers still warm from coffee. The terminal glows with the kind of light that makes a man forget what day it is. PyQt6 sits waiting like a loaded gun.",
+  "act2_title": "The Viewer and The Viewed",
+  "who_whom": "He built a stage for three-act haikus to play themselves out. The app would no longer just exist; it would perform. Every frame, every moment of his compressed poetry would be rendered cinematic, undeniable. He was both the director and the only audience member who mattered.",
+  "act3_title": "The Confession Projected",
+  "what_why": "He coded a viewer that turned haiku into cinema—each three-line verse became a scene, a moment, a confession projected onto glass. The weapon wasn't the PyQt6 framework itself; it was the choice to make his internal monologue external, visible, undeniable. Now every haiku he wrote would be something he had to *watch* come alive. He'd trapped himself in his own gallery.",
+  "verdict": "He didn't build a viewer to see the work. He built it so the work could see him back."
+}

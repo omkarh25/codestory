@@ -226,6 +226,7 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             branch                TEXT,
             author                TEXT,
             commit_date           TEXT,
+            chronological_index   INTEGER DEFAULT 0,
             title                 TEXT,
             subtitle              TEXT,
             act1_title            TEXT,
@@ -235,6 +236,9 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             act3_title            TEXT,
             what_why              TEXT,
             verdict               TEXT,
+            is_hearted            INTEGER DEFAULT 0,
+            is_starred            INTEGER DEFAULT 0,
+            is_saved              INTEGER DEFAULT 0,
             compiled_into_episode INTEGER DEFAULT 0,
             created_at            TEXT    DEFAULT (datetime('now'))
         );
@@ -279,39 +283,46 @@ def save_haiku(
     act3_title: str,
     what_why: str,
     verdict: str,
+    chronological_index: int = 0,
 ) -> None:
     """Persist a haiku record to haiku_commits.
 
     Args:
-        conn:       Open SQLite connection.
-        commit:     Dict with keys: hash, type, msg, branch, author, date.
-        title:      Case file title.
-        subtitle:   One-line tagline.
-        act1_title: Dramatic title for Act I (e.g. "The Dystopian Mind").
-        when_where: Act 1 — setting body text.
-        act2_title: Dramatic title for Act II.
-        who_whom:   Act 2 — players and tension body text.
-        act3_title: Dramatic title for Act III.
-        what_why:   Act 3 — action and consequence body text.
-        verdict:    Final one-line judgment.
+        conn:                Open SQLite connection.
+        commit:              Dict with keys: hash, type, msg, branch, author, date.
+        title:               Case file title.
+        subtitle:            One-line tagline.
+        act1_title:          Dramatic title for Act I.
+        when_where:          Act 1 body text.
+        act2_title:          Dramatic title for Act II.
+        who_whom:            Act 2 body text.
+        act3_title:          Dramatic title for Act III.
+        what_why:            Act 3 body text.
+        verdict:             Final one-line judgment.
+        chronological_index: 1-based position of this commit in repo history
+                             (1 = oldest commit). Used for ordered navigation.
     """
     conn.execute(
         """
         INSERT OR IGNORE INTO haiku_commits
             (commit_hash, commit_type, commit_msg, branch, author, commit_date,
-             title, subtitle, act1_title, when_where, act2_title, who_whom,
-             act3_title, what_why, verdict)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             chronological_index, title, subtitle, act1_title, when_where,
+             act2_title, who_whom, act3_title, what_why, verdict)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             commit["hash"], commit["type"], commit["msg"],
             commit["branch"], commit["author"], commit["date"],
+            chronological_index,
             title, subtitle, act1_title, when_where, act2_title,
             who_whom, act3_title, what_why, verdict,
         ),
     )
     conn.commit()
-    LOGGER.info("Saved haiku for commit %s (%s)", commit["hash"][:7], commit["msg"][:40])
+    LOGGER.info(
+        "Saved haiku #%d for commit %s (%s)",
+        chronological_index, commit["hash"][:7], commit["msg"][:40],
+    )
 
 
 # ─── Git log parser ────────────────────────────────────────────────────────────
@@ -540,6 +551,223 @@ async def generate_haiku_batch(
         return []
 
 
+# ─── CRUD operations (delete, update, regenerate, validate) ──────────────────
+
+def delete_haiku(conn: sqlite3.Connection, commit_hash: str, output_dir: Path) -> bool:
+    """Delete a haiku from DB and clean up its JSON file(s).
+
+    Args:
+        conn:          Open SQLite connection.
+        commit_hash:   Full or short commit hash.
+        output_dir:    Assets/haikuJSON directory.
+
+    Returns:
+        True on success, False if haiku not found.
+    """
+    try:
+        # Find the haiku
+        row = conn.execute(
+            "SELECT commit_hash FROM haiku_commits WHERE commit_hash LIKE ?",
+            (f"{commit_hash}%",),
+        ).fetchone()
+        if not row:
+            LOGGER.warning("Haiku not found for hash %s", commit_hash[:7])
+            return False
+
+        full_hash = row["commit_hash"]
+        short_hash = full_hash[:7]
+
+        # Delete from DB
+        conn.execute("DELETE FROM haiku_commits WHERE commit_hash = ?", (full_hash,))
+        conn.commit()
+        LOGGER.info("Deleted haiku from DB: %s", short_hash)
+
+        # Delete JSON file(s) — glob to handle any naming variation
+        deleted_count = 0
+        for json_file in output_dir.glob(f"*_{short_hash}.json"):
+            json_file.unlink(missing_ok=True)
+            deleted_count += 1
+            LOGGER.debug("Deleted JSON: %s", json_file.name)
+
+        if deleted_count > 0:
+            LOGGER.info("Cleaned up %d JSON file(s) for %s", deleted_count, short_hash)
+
+        return True
+    except sqlite3.Error as exc:
+        LOGGER.error("DB error deleting haiku: %s", exc)
+        return False
+
+
+def regenerate_haiku(conn: sqlite3.Connection, commit_hash: str, cfg: Dict[str, Any]) -> bool:
+    """Delete a haiku and regenerate it from git (useful for LLM retries).
+
+    Args:
+        conn:          Open SQLite connection.
+        commit_hash:   Full or short commit hash.
+        cfg:           Config dict with repo_path, haiku_provider, etc.
+
+    Returns:
+        True on success, False on failure.
+    """
+    output_dir = Path(cfg["output_dir"])
+    repo_path = cfg.get("repo_path", str(_REPO_ROOT))
+
+    # 1. Delete old haiku
+    if not delete_haiku(conn, commit_hash, output_dir):
+        return False
+
+    # 2. Fetch fresh commit from git
+    all_commits = read_git_log(repo_path, limit=500)
+    target_commit = None
+    for c in all_commits:
+        if c["hash"].startswith(commit_hash):
+            target_commit = c
+            break
+
+    if not target_commit:
+        LOGGER.error("Commit not found in git log: %s", commit_hash[:7])
+        return False
+
+    # 3. Generate fresh haiku via LLM
+    try:
+        client = build_llm_client(cfg["haiku_provider"], cfg["haiku_model"])
+        system_prompt = load_haiku_director_prompt()
+        depth = cfg.get("haiku_depth", "git_commit")
+
+        haiku_list = asyncio.run(
+            generate_haiku_batch([target_commit], client, cfg["haiku_model"],
+                                system_prompt, depth, repo_path)
+        )
+        if not haiku_list:
+            LOGGER.error("LLM failed to generate haiku for %s", commit_hash[:7])
+            return False
+
+        haiku = haiku_list[0]
+        title = haiku.get("title", f"CASE FILE — {target_commit['hash'][:7]}")
+        subtitle = haiku.get("subtitle", "")
+        act1_title = haiku.get("act1_title", "I")
+        when_where = haiku.get("when_where", "")
+        act2_title = haiku.get("act2_title", "II")
+        who_whom = haiku.get("who_whom", "")
+        act3_title = haiku.get("act3_title", "III")
+        what_why = haiku.get("what_why", "")
+        verdict = haiku.get("verdict", "")
+
+        # Calculate chronological index
+        all_commits_reversed = list(reversed(all_commits))
+        chron_idx = next(
+            (i + 1 for i, c in enumerate(all_commits_reversed) if c["hash"] == target_commit["hash"]),
+            0,
+        )
+
+        # 4. Save fresh haiku
+        save_haiku(
+            conn, target_commit, title, subtitle, act1_title, when_where,
+            act2_title, who_whom, act3_title, what_why, verdict,
+            chronological_index=chron_idx,
+        )
+        haiku["chronological_index"] = chron_idx
+        write_haiku_json(output_dir, target_commit, haiku)
+
+        LOGGER.info("Successfully regenerated haiku: %s", target_commit["hash"][:7])
+        return True
+
+    except Exception as exc:
+        LOGGER.error("Regenerate failed for %s: %s", commit_hash[:7], exc)
+        return False
+
+
+def validate_db_json_consistency(db_path: str, json_dir: Path) -> Dict[str, List[str]]:
+    """Check for orphaned/missing files and duplicates.
+
+    Args:
+        db_path: Path to tmChron.db.
+        json_dir: Path to Assets/haikuJSON.
+
+    Returns:
+        Dict with 'orphaned_json', 'missing_json', 'duplicate_filenames' lists.
+    """
+    issues = {
+        "orphaned_json": [],
+        "missing_json": [],
+        "duplicate_filenames": [],
+    }
+
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+
+        # Get all haikus from DB
+        db_rows = conn.execute("SELECT commit_hash FROM haiku_commits").fetchall()
+        db_hashes = {row["commit_hash"][:7] for row in db_rows}
+
+        # Check JSON files
+        json_files = set(json_dir.glob("haiku_*.json"))
+        json_hashes = {f.name.split("_")[-1].replace(".json", "") for f in json_files}
+
+        # Orphaned JSONs (no DB record)
+        for json_file in json_files:
+            short_hash = json_file.name.split("_")[-1].replace(".json", "")
+            if short_hash not in db_hashes:
+                issues["orphaned_json"].append(json_file.name)
+
+        # Missing JSONs (DB record but no file)
+        for short_hash in db_hashes:
+            if short_hash not in json_hashes:
+                issues["missing_json"].append(short_hash)
+
+        # Duplicate filenames (multiple haikus with same short_hash + branch)
+        filenames = {}
+        for json_file in json_files:
+            # Extract (chronological_index, branch, short_hash) triplet
+            parts = json_file.name.replace("haiku_", "").replace(".json", "").split("_")
+            if len(parts) >= 3:
+                key = "_".join(parts[-2:])  # branch_short_hash
+                if key in filenames:
+                    issues["duplicate_filenames"].append(f"{key}: {filenames[key]}, {json_file.name}")
+                else:
+                    filenames[key] = json_file.name
+
+        conn.close()
+
+        total = sum(len(v) for v in issues.values())
+        LOGGER.info("Consistency check: %d issues found", total)
+        return issues
+
+    except Exception as exc:
+        LOGGER.error("Consistency check failed: %s", exc)
+        return issues
+
+
+def rebuild_chronological_indices(conn: sqlite3.Connection, repo_path: str) -> int:
+    """Recalculate chronological_index for all haikus based on actual git history.
+
+    Useful after git history changes (rebase, force-push, etc).
+
+    Args:
+        conn:       Open SQLite connection.
+        repo_path:  Path to the git repository.
+
+    Returns:
+        Number of haikus updated.
+    """
+    all_commits = read_git_log(repo_path, limit=500)
+    all_commits_reversed = list(reversed(all_commits))
+    chron_index_map = {c["hash"]: i + 1 for i, c in enumerate(all_commits_reversed)}
+
+    updated = 0
+    for commit_hash, chron_idx in chron_index_map.items():
+        conn.execute(
+            "UPDATE haiku_commits SET chronological_index = ? WHERE commit_hash = ?",
+            (chron_idx, commit_hash),
+        )
+        updated += 1
+
+    conn.commit()
+    LOGGER.info("Rebuilt chronological indices: %d haikus", updated)
+    return updated
+
+
 # ─── Output ────────────────────────────────────────────────────────────────────
 
 def write_haiku_json(output_dir: Path, commit: Dict[str, str], haiku: Dict[str, str]) -> Path:
@@ -556,7 +784,9 @@ def write_haiku_json(output_dir: Path, commit: Dict[str, str], haiku: Dict[str, 
     output_dir.mkdir(parents=True, exist_ok=True)
     short_hash = commit["hash"][:7]
     branch_safe = (commit.get("branch") or "main").replace("/", "-")
-    filename = output_dir / f"haiku_{branch_safe}_{short_hash}.json"
+    chron_idx = haiku.get("chronological_index", 0)
+    # Chronological index prefix: haiku_001_main_f4096af.json
+    filename = output_dir / f"haiku_{chron_idx:03d}_{branch_safe}_{short_hash}.json"
     data = {
         "commit_hash": commit["hash"],
         "commit_type": commit["type"],
@@ -564,6 +794,7 @@ def write_haiku_json(output_dir: Path, commit: Dict[str, str], haiku: Dict[str, 
         "branch": commit["branch"],
         "author": commit["author"],
         "date": commit["date"],
+        "chronological_index": haiku.get("chronological_index", 0),
         "title": haiku.get("title", ""),
         "subtitle": haiku.get("subtitle", ""),
         "act1_title": haiku.get("act1_title", ""),
@@ -620,11 +851,13 @@ async def run_haiku_pipeline(cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
     processed = get_processed_hashes(conn)
     LOGGER.info("Already processed: %d commits", len(processed))
 
-    # 3. Fetch git log
-    all_commits = read_git_log(repo_path, limit=500)
-    if oldest_first:
-        all_commits = list(reversed(all_commits))
-        LOGGER.info("oldest_first=True — processing from oldest commit")
+    # 3. Fetch git log — always reversed (oldest → newest) for chronological indexing
+    all_commits_newest_first = read_git_log(repo_path, limit=500)
+    all_commits = list(reversed(all_commits_newest_first))  # oldest first
+    LOGGER.info("Processing from oldest commit first (chronological order)")
+
+    # Build chronological index map: hash → 1-based index in full repo history
+    chron_index_map = {c["hash"]: i + 1 for i, c in enumerate(all_commits)}
 
     new_commits = [c for c in all_commits if c["hash"] not in processed]
     new_commits = new_commits[:max_per_run]
@@ -669,6 +902,9 @@ async def run_haiku_pipeline(cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
             what_why   = haiku.get("what_why", "")
             verdict    = haiku.get("verdict", "")
 
+            chron_idx = chron_index_map.get(commit["hash"], 0)
+            haiku["chronological_index"] = chron_idx
+
             # Persist to DB
             save_haiku(
                 conn, commit, title, subtitle,
@@ -676,14 +912,16 @@ async def run_haiku_pipeline(cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
                 act2_title, who_whom,
                 act3_title, what_why,
                 verdict,
+                chronological_index=chron_idx,
             )
 
-            # Write JSON file
+            # Write JSON file with chronological index in filename
             write_haiku_json(output_dir, commit, haiku)
 
             category = COMMIT_TYPE_TO_CATEGORY.get(commit["type"], "Other")
             results.append({
                 "hash": commit["hash"],
+                "chronological_index": chron_idx,
                 "title": title,
                 "subtitle": subtitle,
                 "act1_title": act1_title,
@@ -746,7 +984,16 @@ if __name__ == "__main__":
     )
 
     parser = argparse.ArgumentParser(
-        description="codeStory Haiku Pipeline — generate noir haikus from git commits"
+        description="codeStory Haiku Pipeline — generate noir haikus from git commits",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+examples:
+  python git_commit_haiku.py                 # generate all new haikus
+  python git_commit_haiku.py --delete abc123 # delete haiku for commit
+  python git_commit_haiku.py --regenerate abc123  # delete + re-LLM-generate
+  python git_commit_haiku.py --validate      # check DB ↔ JSON consistency
+  python git_commit_haiku.py --rebuild-indices   # recalculate chronological order
+        """,
     )
     parser.add_argument("--repo",  default=None, help="Path to git repo (default: config.json)")
     parser.add_argument("--depth", choices=["git_commit", "git_diff"], default=None,
@@ -754,8 +1001,84 @@ if __name__ == "__main__":
     parser.add_argument("--max",   type=int, default=None,
                         help="Max haikus to generate per run (default: config.json)")
     parser.add_argument("--model", default=None, help="Override LLM model")
+    parser.add_argument("--delete", metavar="HASH", default=None,
+                        help="Delete haiku for commit (by hash prefix)")
+    parser.add_argument("--regenerate", metavar="HASH", default=None,
+                        help="Delete + re-generate haiku for commit")
+    parser.add_argument("--validate", action="store_true",
+                        help="Check DB ↔ JSON consistency and report issues")
+    parser.add_argument("--rebuild-indices", action="store_true",
+                        help="Recalculate chronological indices for all haikus")
     args = parser.parse_args()
 
+    cfg = load_config({
+        "repo_path": args.repo,
+        "haiku_depth": args.depth,
+        "max_haiku_per_run": args.max,
+        "haiku_model": args.model,
+    })
+
+    # ── Delete ──────────────────────────────────────────────────────────────────
+    if args.delete:
+        db_path = cfg["db_path"]
+        output_dir = Path(cfg["output_dir"])
+        try:
+            conn = get_db_connection(db_path)
+            if delete_haiku(conn, args.delete, output_dir):
+                print(f"✓ Deleted haiku for {args.delete[:7]}")
+            else:
+                print(f"✗ Haiku not found: {args.delete[:7]}")
+            conn.close()
+        except Exception as exc:
+            print(f"ERROR: {exc}")
+        sys.exit(0)
+
+    # ── Regenerate ──────────────────────────────────────────────────────────────
+    if args.regenerate:
+        db_path = cfg["db_path"]
+        try:
+            conn = get_db_connection(db_path)
+            if regenerate_haiku(conn, args.regenerate, cfg):
+                print(f"✓ Regenerated haiku for {args.regenerate[:7]}")
+            else:
+                print(f"✗ Regeneration failed: {args.regenerate[:7]}")
+            conn.close()
+        except Exception as exc:
+            print(f"ERROR: {exc}")
+        sys.exit(0)
+
+    # ── Validate ────────────────────────────────────────────────────────────────
+    if args.validate:
+        db_path = cfg["db_path"]
+        json_dir = Path(cfg["output_dir"])
+        issues = validate_db_json_consistency(db_path, json_dir)
+        total = sum(len(v) for v in issues.values())
+        if total == 0:
+            print("✓ Consistency check: All good — no issues found.")
+        else:
+            print(f"⚠ {total} consistency issue(s) found:\n")
+            if issues["orphaned_json"]:
+                print(f"Orphaned JSON files (no DB record):\n  " + "\n  ".join(issues["orphaned_json"]))
+            if issues["missing_json"]:
+                print(f"Missing JSON files (DB record but no file):\n  " + "\n  ".join(issues["missing_json"]))
+            if issues["duplicate_filenames"]:
+                print(f"Duplicate filenames:\n  " + "\n  ".join(issues["duplicate_filenames"]))
+        sys.exit(0)
+
+    # ── Rebuild indices ─────────────────────────────────────────────────────────
+    if args.rebuild_indices:
+        db_path = cfg["db_path"]
+        repo_path = cfg["repo_path"]
+        try:
+            conn = get_db_connection(db_path)
+            updated = rebuild_chronological_indices(conn, repo_path)
+            print(f"✓ Rebuilt chronological indices: {updated} haikus updated")
+            conn.close()
+        except Exception as exc:
+            print(f"ERROR: {exc}")
+        sys.exit(0)
+
+    # ── Standard generation ─────────────────────────────────────────────────────
     overrides = {
         "repo_path":       args.repo,
         "haiku_depth":     args.depth,

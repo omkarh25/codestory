@@ -1,0 +1,17 @@
+{
+  "commit_hash": "6a8a858dd84782a902e323bc01d17702e9af06d7",
+  "commit_type": "feat",
+  "commit_msg": "feat: build full CLI entry point with argparse",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "title": "CASE FILE — The Final Door",
+  "subtitle": "He gave it a mouth. Now it could speak to anyone, anywhere, without permission.",
+  "act1_title": "",
+  "when_where": "Still 9:05 AM. Still March 13th. But the moment he committed the argparse entry point, the weapon left the laboratory. No more internal API, no more plausible deniability about who would use this. The CLI was the final threshold—the moment a tool becomes a threat.",
+  "act2_title": "The Hands That Hold It",
+  "who_whom": "Omkar had built the haiku engine and the story pipeline, but he'd kept them hidden behind abstractions. Now anyone with a terminal could invoke them. The power was democratized, which meant the guilt was distributed. He'd put the knife in a thousand hands and called it open source.",
+  "act3_title": "The Gate Stands Open",
+  "what_why": "Argparse. Command-line arguments. Simple infrastructure. But it was the infrastructure of release. He built the entry point knowing it would be the first thing pulled from the repository, the first thing a user would see, the first thing that would let them run the haiku pipeline and the episode generator on *their* code, *their* history, *their* confessions. By noon, the first person outside his head would run it. By evening, dozens. By next week, the tool would be in the wild, turning every developer who touched it into an unwilling narrator of their own crime.",
+  "verdict": "He didn't build a CLI; he built a gun and handed it to the world with a smile."
+}

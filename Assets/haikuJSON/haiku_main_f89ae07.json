@@ -1,0 +1,17 @@
+{
+  "commit_hash": "f89ae076c069a98cb8c20502da44e95b8d9e7145",
+  "commit_type": "docs",
+  "commit_msg": "docs: add Director files — HaikuDirector, EpisodeDirector, RepoStory",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "title": "CASE FILE — The Directors Take the Stage",
+  "subtitle": "Still 09:05 AM. He gave the machine three voices—three ways to tell the same lie.",
+  "act1_title": "The Puppet Master's Workshop",
+  "when_where": "Same minute, same branch, same obsessive momentum. The docs folder is where architecture lives—where the invisible machinery gets named, classified, given power. HaikuDirector. EpisodeDirector. RepoStory. Three entities, three perspectives, all controlled by one trembling hand.",
+  "act2_title": "The Three Witnesses",
+  "who_whom": "Omkar created three directors—three different ways to interpret the same codebase, three different narratives from the same facts. Each director was a version of himself, a different mask he could wear. But masks multiply the liar; they don't hide him.",
+  "act3_title": "The Narrators Emerge",
+  "what_why": "He built three systems to tell the story of code: one for haikus (the poetic lie), one for episodes (the serialized lie), one for the repo itself (the foundational lie). Each director would take git commits and spin them into narrative, into meaning, into something that felt true even when it was pure invention. He was building a machine that could make confession sound like art, that could turn his own guilt into a spectacle. And he was documenting every step, every choice, every moment of the descent.",
+  "verdict": "He didn't create directors. He created accomplices."
+}

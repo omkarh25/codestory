@@ -1,0 +1,17 @@
+{
+  "commit_hash": "c70d0e649c1716eef796174b25b1ddbc5f10bc63",
+  "commit_type": "docs",
+  "commit_msg": "docs: write codeStory README with full project spec",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "title": "CASE FILE — The Full Confession",
+  "subtitle": "One minute later, he wrote down everything—the whole blueprint, the whole sickness.",
+  "act1_title": "The Confessional Booth",
+  "when_where": "09:05 AM, still on main, still in the same breath. The README file is where you tell the world what you're building, but Omkar used it like a suicide note—detailed, methodical, complete. Every spec spelled out. No secrets left.",
+  "act2_title": "The Reader and the Read",
+  "who_whom": "Omkar addressed the void: future collaborators, future selves, future judges. But really, he was talking to himself in the mirror. The project spec became a mirror he couldn't look away from—the more he documented, the more he was documenting his own obsession.",
+  "act3_title": "Words as Evidence",
+  "what_why": "He wrote it all down: the vision, the scope, the architecture, the purpose. codeStory was supposed to turn git commits into narrative—to make the invisible visible, to give every line of code a voice and a story. But as he documented it, he realized what he was really building: a machine to confess, a system to turn his own work into testimony. Every word in that README was another thread connecting him to what was coming.",
+  "verdict": "He documented the crime before he committed it."
+}

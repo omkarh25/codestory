@@ -228,6 +228,9 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             branch_note    TEXT,
             max_ruling     TEXT,
             commit_hashes  TEXT,
+            is_hearted     INTEGER DEFAULT 0,
+            is_starred     INTEGER DEFAULT 0,
+            is_saved       INTEGER DEFAULT 0,
             created_at     TEXT DEFAULT (datetime('now'))
         );
     """)
@@ -470,6 +473,195 @@ def _fallback_episode(episode_number: int, branch: str) -> Dict[str, str]:
     }
 
 
+# ─── CRUD operations (delete, regenerate, validate) ────────────────────────
+
+def delete_episode(conn: sqlite3.Connection, episode_number: int, output_dir: Path) -> bool:
+    """Delete an episode and un-mark its haikus as compiled.
+
+    Orphaned haikus can now be re-used in future episodes.
+
+    Args:
+        conn:            Open SQLite connection.
+        episode_number:  Episode number to delete.
+        output_dir:      Assets/haikuJSON directory.
+
+    Returns:
+        True on success, False if episode not found.
+    """
+    try:
+        # Fetch episode to get its commit hashes
+        row = conn.execute(
+            "SELECT commit_hashes FROM chronicle_episodes WHERE episode_number = ?",
+            (episode_number,),
+        ).fetchone()
+        if not row:
+            LOGGER.warning("Episode not found: %d", episode_number)
+            return False
+
+        commit_hashes = json.loads(row["commit_hashes"])
+
+        # Un-mark haikus as compiled
+        for h in commit_hashes:
+            conn.execute(
+                "UPDATE haiku_commits SET compiled_into_episode = 0 WHERE commit_hash = ?",
+                (h,),
+            )
+
+        # Delete episode from DB
+        conn.execute("DELETE FROM chronicle_episodes WHERE episode_number = ?", (episode_number,))
+        conn.commit()
+        LOGGER.info("Deleted episode %d (un-marked %d haikus)", episode_number, len(commit_hashes))
+
+        # Delete JSON file
+        json_file = output_dir / f"episode_{episode_number:03d}.json"
+        if json_file.exists():
+            json_file.unlink()
+            LOGGER.debug("Deleted JSON: %s", json_file.name)
+
+        return True
+    except sqlite3.Error as exc:
+        LOGGER.error("DB error deleting episode: %s", exc)
+        return False
+
+
+def regenerate_episode(conn: sqlite3.Connection, episode_number: int, cfg: Dict[str, Any]) -> bool:
+    """Delete an episode and regenerate it from fresh haikus.
+
+    Useful for LLM retries or changing episode synthesis parameters.
+
+    Args:
+        conn:            Open SQLite connection.
+        episode_number:  Episode number to regenerate.
+        cfg:             Config dict with episode_provider, episode_model, etc.
+
+    Returns:
+        True on success, False on failure.
+    """
+    output_dir = Path(cfg.get("output_dir", str(_REPO_ROOT / "Assets" / "haikuJSON")))
+    repo_path = cfg.get("repo_path", str(_REPO_ROOT))
+    haiku_per_episode = int(cfg.get("haiku_per_episode", 10))
+
+    # 1. Delete old episode (un-marks haikus)
+    if not delete_episode(conn, episode_number, output_dir):
+        return False
+
+    # 2. Fetch fresh uncompiled haikus (oldest first)
+    uncompiled = get_uncompiled_haikus(conn, limit=haiku_per_episode)
+    available = len(uncompiled)
+
+    if available < haiku_per_episode:
+        LOGGER.warning(
+            "Not enough haikus to regenerate episode %d: %d/%d available",
+            episode_number, available, haiku_per_episode,
+        )
+        return False
+
+    # 3. Generate fresh episode via LLM
+    try:
+        client = build_llm_client(cfg["episode_provider"], cfg["episode_model"])
+        system_prompt = load_episode_director_prompt()
+        depth = cfg.get("episode_depth", "git_commit")
+
+        episode_data = asyncio.run(
+            generate_episode(
+                client, cfg["episode_model"], episode_number, uncompiled,
+                system_prompt, depth, repo_path,
+            )
+        )
+
+        if not episode_data:
+            LOGGER.error("Failed to generate episode %d", episode_number)
+            return False
+
+        title = episode_data.get("title", f"EPISODE ACT {episode_number}: UNTITLED")
+        decade_summary = episode_data.get("decade_summary", "")
+        branch_note = episode_data.get("branch_note", "")
+        max_ruling = episode_data.get("max_ruling", "")
+
+        # 4. Save fresh episode (same episode_number to maintain sequential integrity)
+        commit_hashes = [row["commit_hash"] for row in uncompiled]
+        save_episode(conn, episode_number, title, decade_summary, branch_note, max_ruling, commit_hashes)
+
+        # Re-write JSON
+        write_episode_json(
+            output_dir, episode_number, title, decade_summary,
+            branch_note, max_ruling, commit_hashes,
+        )
+
+        LOGGER.info("Successfully regenerated episode %d", episode_number)
+        return True
+
+    except Exception as exc:
+        LOGGER.error("Regenerate failed for episode %d: %s", episode_number, exc)
+        return False
+
+
+def validate_episode_consistency(db_path: str, json_dir: Path) -> Dict[str, List[str]]:
+    """Check for orphaned/broken episodes and missing JSON files.
+
+    Args:
+        db_path:  Path to tmChron.db.
+        json_dir: Path to Assets/haikuJSON.
+
+    Returns:
+        Dict with 'orphaned_json', 'broken_refs', 'missing_json' lists.
+    """
+    issues = {
+        "orphaned_json": [],
+        "broken_refs": [],
+        "missing_json": [],
+    }
+
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+
+        # Get all episodes from DB
+        episodes = conn.execute("SELECT * FROM chronicle_episodes ORDER BY episode_number").fetchall()
+        db_episode_numbers = {row["episode_number"] for row in episodes}
+
+        # Get all haiku commit_hashes
+        haiku_hashes = {row["commit_hash"] for row in conn.execute(
+            "SELECT commit_hash FROM haiku_commits"
+        ).fetchall()}
+
+        # Check JSON files
+        json_files = set(json_dir.glob("episode_*.json"))
+        json_episode_numbers = {
+            int(f.name.replace("episode_", "").replace(".json", ""))
+            for f in json_files if f.name.startswith("episode_")
+        }
+
+        # Orphaned JSONs (no DB record)
+        for ep_num in json_episode_numbers:
+            if ep_num not in db_episode_numbers:
+                issues["orphaned_json"].append(f"episode_{ep_num:03d}.json")
+
+        # Missing JSONs (DB record but no file)
+        for ep_num in db_episode_numbers:
+            if ep_num not in json_episode_numbers:
+                issues["missing_json"].append(f"episode_{ep_num:03d}")
+
+        # Broken refs (episode references non-existent commit_hashes)
+        for ep in episodes:
+            commit_hashes = json.loads(ep["commit_hashes"] or "[]")
+            for h in commit_hashes:
+                if h not in haiku_hashes:
+                    issues["broken_refs"].append(
+                        f"Episode {ep['episode_number']}: commit {h[:7]} not in DB"
+                    )
+
+        conn.close()
+
+        total = sum(len(v) for v in issues.values())
+        LOGGER.info("Episode consistency check: %d issues found", total)
+        return issues
+
+    except Exception as exc:
+        LOGGER.error("Episode consistency check failed: %s", exc)
+        return issues
+
+
 # ─── File output ──────────────────────────────────────────────────────────────
 
 def write_episode_json(
@@ -644,13 +836,83 @@ if __name__ == "__main__":
     )
 
     parser = argparse.ArgumentParser(
-        description="codeStory Episode Pipeline — synthesise haikus into episode acts"
+        description="codeStory Episode Pipeline — synthesise haikus into episode acts",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+examples:
+  python changelog_episodes.py                  # generate next episode
+  python changelog_episodes.py --delete 1      # delete episode 1 (un-marks haikus)
+  python changelog_episodes.py --regenerate 1  # delete + re-synthesize episode 1
+  python changelog_episodes.py --validate      # check DB ↔ JSON episode consistency
+        """,
     )
     parser.add_argument("--depth", choices=["git_commit", "git_diff"], default=None,
                         help="Analysis depth (default: config.json episode_depth)")
     parser.add_argument("--model", default=None, help="Override LLM model")
+    parser.add_argument("--delete", type=int, metavar="N", default=None,
+                        help="Delete episode N (un-marks its haikus)")
+    parser.add_argument("--regenerate", type=int, metavar="N", default=None,
+                        help="Delete + re-synthesize episode N")
+    parser.add_argument("--validate", action="store_true",
+                        help="Check episode DB ↔ JSON consistency")
     args = parser.parse_args()
 
+    cfg = load_config({
+        "episode_depth": args.depth,
+        "episode_model": args.model,
+    })
+
+    # ── Delete ──────────────────────────────────────────────────────────────────
+    if args.delete:
+        db_path = cfg["db_path"]
+        output_dir = Path(cfg["output_dir"])
+        try:
+            conn = get_db_connection(db_path)
+            if delete_episode(conn, args.delete, output_dir):
+                print(f"✓ Deleted episode {args.delete} (un-marked its haikus)")
+            else:
+                print(f"✗ Episode not found: {args.delete}")
+            conn.close()
+        except Exception as exc:
+            print(f"ERROR: {exc}")
+        import sys
+        sys.exit(0)
+
+    # ── Regenerate ──────────────────────────────────────────────────────────────
+    if args.regenerate:
+        db_path = cfg["db_path"]
+        try:
+            conn = get_db_connection(db_path)
+            if regenerate_episode(conn, args.regenerate, cfg):
+                print(f"✓ Regenerated episode {args.regenerate}")
+            else:
+                print(f"✗ Regeneration failed: episode {args.regenerate}")
+            conn.close()
+        except Exception as exc:
+            print(f"ERROR: {exc}")
+        import sys
+        sys.exit(0)
+
+    # ── Validate ────────────────────────────────────────────────────────────────
+    if args.validate:
+        db_path = cfg["db_path"]
+        json_dir = Path(cfg["output_dir"])
+        issues = validate_episode_consistency(db_path, json_dir)
+        total = sum(len(v) for v in issues.values())
+        if total == 0:
+            print("✓ Episode consistency check: All good — no issues found.")
+        else:
+            print(f"⚠ {total} consistency issue(s) found:\n")
+            if issues["orphaned_json"]:
+                print(f"Orphaned JSON files (no DB record):\n  " + "\n  ".join(issues["orphaned_json"]))
+            if issues["missing_json"]:
+                print(f"Missing JSON files (DB record but no file):\n  " + "\n  ".join(issues["missing_json"]))
+            if issues["broken_refs"]:
+                print(f"Broken references (commits missing from DB):\n  " + "\n  ".join(issues["broken_refs"]))
+        import sys
+        sys.exit(0)
+
+    # ── Standard generation ─────────────────────────────────────────────────────
     overrides = {
         "episode_depth": args.depth,
         "episode_model": args.model,
