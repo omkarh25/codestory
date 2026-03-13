@@ -36,7 +36,14 @@ def render_all(config: Dict[str, Any]) -> List[str]:
     try:
         _ensure_legacy_path()
         from ytpipeline import main as ytpipeline_main
-        exit_code = ytpipeline_main()
+        # Pass clean args to ytpipeline — ignore parent CLI flags like --release_dry_run
+        import sys as _sys
+        orig_argv = _sys.argv
+        try:
+            _sys.argv = ["ytpipeline", "--all"]
+            exit_code = ytpipeline_main()
+        finally:
+            _sys.argv = orig_argv
         if exit_code == 0:
             LOGGER.info("Video rendering complete")
             return []  # ytpipeline prints its own output
