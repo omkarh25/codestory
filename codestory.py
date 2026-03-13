@@ -11,10 +11,9 @@ The actual code is in src/codestory/
 import sys
 from pathlib import Path
 
-# Add src to path
+# Add src to path FIRST (before current directory to avoid conflict with codestory.py)
 src_path = Path(__file__).parent / "src"
-if str(src_path) not in sys.path:
-    sys.path.insert(0, str(src_path))
+sys.path.insert(0, str(src_path))
 
 # Import and run main from the package
 from codestory.__main__ import main
