@@ -1,0 +1,55 @@
+# ─── API Keys & Secrets ───────────────────────────────────────────────────────
+llm.env
+.env
+*.env
+!llm.env.example
+
+# ─── Database (populated at runtime — not committed) ─────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+.Python
+
+# ─── Virtual environments ─────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# ─── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ─── IDE / Editor ─────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ─── Generated Assets (large, regenerable) ────────────────────────────────────
+Assets/YtShorts/*.mp4
+Assets/YtShorts/*.mov
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Distribution / Build ─────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+.eggs/

@@ -1,0 +1,17 @@
+{
+    "tmChronicles": {
+        "repo_path": ".",
+        "max_haiku_per_run": 12,
+        "batch_size": 3,
+        "haiku_per_episode": 10,
+        "db_path": "tmChron.db",
+        "output_dir": "Assets/haikuJSON",
+        "haiku_provider": "anthropic",
+        "haiku_model": "claude-haiku-4-5-20251001",
+        "haiku_depth": "git_commit",
+        "episode_provider": "anthropic",
+        "episode_model": "claude-haiku-4-5-20251001",
+        "episode_depth": "git_commit",
+        "oldest_first": true
+    }
+}
