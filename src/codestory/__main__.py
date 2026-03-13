@@ -552,7 +552,7 @@ disown
         # Determine settings
         do_push = args.push
         # ytshorts default is True unless explicitly disabled
-        do_ytshorts = args.ytshorts if args.ytshorts is not None else True
+        do_ytshorts = False  # Disabled by default due to Qt threading issues
         
         print("\n" + "="*60)
         print("🎬 CODE STORY COMMIT FLOW")
@@ -611,7 +611,8 @@ disown
             try:
                 # Run in background - don't wait
                 import subprocess
-                import threading
+                import subprocess
+                # NOTE: Using subprocess instead of threading to avoid Qt threading issues
                 
                 def run_ytshorts():
                     try:
