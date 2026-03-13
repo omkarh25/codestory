@@ -33,9 +33,7 @@ def launch_app(config: Dict[str, Any], start_index: Optional[int] = None) -> int
         if str(codestory_root) not in sys.path:
             sys.path.insert(0, str(codestory_root))
         
-        from codeQT import MainWindow, QApplication
         from PyQt6.QtWidgets import QApplication
-        import sys
         
         app = QApplication.instance() or QApplication(sys.argv)
         
