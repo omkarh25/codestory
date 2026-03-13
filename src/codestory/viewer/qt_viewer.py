@@ -24,6 +24,9 @@ def launch_app(config: Dict[str, Any], start_index: Optional[int] = None) -> int
     Returns:
         Exit code.
     """
+    import os
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"  # Prevent GUI initialization issues
+    
     LOGGER.info("Launching PyQt6 viewer (start_index=%s)", start_index)
 
     try:
@@ -35,7 +38,13 @@ def launch_app(config: Dict[str, Any], start_index: Optional[int] = None) -> int
         
         from PyQt6.QtWidgets import QApplication
         
-        app = QApplication.instance() or QApplication(sys.argv)
+        # Create QApplication in the main thread - this is critical
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(sys.argv)
+        
+        # Clear the offscreen platform now that we have an app
+        os.environ.pop("QT_QPA_PLATFORM", None)
         
         from codeQT import MainWindow
         window = MainWindow(config, start_index=start_index)

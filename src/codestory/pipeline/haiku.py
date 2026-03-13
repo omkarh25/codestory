@@ -242,14 +242,9 @@ def generate_haikus(config: Optional[Dict[str, Any]] = None) -> List[Dict[str, A
     cfg = load_config(overrides=config) if config else load_config()
 
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(asyncio.run, run_haiku_pipeline(cfg))
-                return future.result()
-        else:
-            return asyncio.run(run_haiku_pipeline(cfg))
+        # Create a new event loop to avoid issues with existing loops
+        # This is the safest approach - always create fresh
+        return asyncio.run(run_haiku_pipeline(cfg))
     except Exception as exc:
         LOGGER.error("Haiku pipeline failed: %s", exc)
         raise

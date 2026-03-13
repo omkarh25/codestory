@@ -231,17 +231,8 @@ def generate_commit_message_sync(
     system_prompt = load_commit_prompt()
 
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(
-                    asyncio.run, 
-                    generate_commit_message(client, model, diff, system_prompt)
-                )
-                return future.result()
-        else:
-            return asyncio.run(generate_commit_message(client, model, diff, system_prompt))
+        # Always create a fresh event loop
+        return asyncio.run(generate_commit_message(client, model, diff, system_prompt))
     except Exception as exc:
         LOGGER.error("Commit message generation failed: %s", exc)
         return None
@@ -266,17 +257,8 @@ def commit_and_push(
     cfg = config if config else load_config() if config is None else config
 
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(
-                    asyncio.run, 
-                    run_commit_pipeline(cfg, do_push=do_push)
-                )
-                return future.result()
-        else:
-            return asyncio.run(run_commit_pipeline(cfg, do_push=do_push))
+        # Always create a fresh event loop to avoid threading issues
+        return asyncio.run(run_commit_pipeline(cfg, do_push=do_push))
     except Exception as exc:
         LOGGER.error("Commit pipeline failed: %s", exc)
         return False, ""
