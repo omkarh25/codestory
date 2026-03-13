@@ -1,0 +1,18 @@
+{
+  "commit_hash": "1c91115b02813480ac51d695801286e20bcf7713",
+  "commit_type": "feat",
+  "commit_msg": "feat: implement episode pipeline with RepoStory baseline context",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 5,
+  "title": "CASE FILE — The Episode Synthesizer",
+  "subtitle": "Ten haikus become one decade. One decade becomes a ruling he can't escape.",
+  "act1_title": "The Baseline Context Hour",
+  "when_where": "Same morning, same main branch. The changelog_episodes.py file—667 lines—was written while the haiku pipeline was still warm. This was the second weapon. Where the first broke commits into scenes, this one would stitch scenes back into seasons. The Director/RepoStory.md file waited in the shadows, ready to be injected as baseline context into every episode verdict.",
+  "act2_title": "Conspiracy of the Compiled",
+  "who_whom": "The episode pipeline against the haiku record. Once 10 uncompiled haikus sat in tmChron.db, the machine would synthesize them using load_episode_director_prompt()—which loaded RepoStory as preamble, then EpisodeDirector as the brief. MAX THE DESTROYER would see the origin story before rendering judgment on every decade. The stakes: every episode verdict would be rooted in the baseline truth of why this codebase existed in the first place.",
+  "act3_title": "The Synthesis Protocol",
+  "what_why": "He built fetch_actions() to query uncompiled haikus, aggregated their diffs if episode_depth was 'git_diff', and sent them to the LLM with the combined prompt (RepoStory + EpisodeDirector). The episode would have four sections: TITLE (thematic crime), DECADE_SUMMARY (3-4 sentences pulling the emotional thread), BRANCH_NOTE (branch name + noir pun), MAX'S_RULING (one irreversible line). Every 10 haikus, the machine would condense them into a single verdict. He was no longer writing individual confessions. He was building a ledger.",
+  "verdict": "He didn't synthesize episodes to understand the decade; he synthesized them to be understood by it."
+}

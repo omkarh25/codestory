@@ -1,0 +1,18 @@
+{
+  "commit_hash": "6a8a858dd84782a902e323bc01d17702e9af06d7",
+  "commit_type": "feat",
+  "commit_msg": "feat: build full CLI entry point with argparse",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 6,
+  "title": "CASE FILE — The CLI Opens the Door",
+  "subtitle": "One command-line interface. Twelve subcommands. No way out.",
+  "act1_title": "The Terminal Confession",
+  "when_where": "Still 9:05 AM on main. The codestory.py file—445 lines—was the front door. Where the previous two files were the machinery, this was the handle. argparse was the lock. The CLI would let anyone (or himself) invoke the entire system: --generate-haikus, --generate-episodes, --play (launch PyQt6 viewer), --reset-db, --install-hook, --status. No hidden API. No excuses.",
+  "act2_title": "The Command Structure Laid Bare",
+  "who_whom": "Omkar the user against Omkar the architect. cmd_status() would query the database and report: total haikus, pending haikus, total episodes, whether the next episode was ready. cmd_reset_db() would delete tmChron.db entirely—a kill switch. cmd_generate_haikus() and cmd_generate_episodes() would import the previous two pipelines and run them with the given flags (--depth git_diff, --max 5, etc.). Every command returned a meaningful exit code. This was CI/CD ready. This was unstoppable.",
+  "act3_title": "The Gateway Sealed",
+  "what_why": "He wired up argparse with subparsers for every operation. _load_config() merged config.json with CLI overrides. The main() function dispatched to the right command based on argv. If you ran 'python codestory.py --play', it would initialize the PyQt6 viewer and render every haiku and episode ever generated. If you ran 'python codestory.py --generate-haikus --depth git_diff --max 5', it would fetch 5 commits from the repo, pull their full diffs, send them to the LLM, and store the results. He had built the entire pipeline in one morning. Now it was ready for anyone to turn the key.",
+  "verdict": "He didn't build a CLI to run the system; he built it so the system could run him."
+}

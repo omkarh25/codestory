@@ -1,0 +1,18 @@
+{
+  "commit_hash": "8d5b87f3ea98b6ad83f3ad835b867213889fe819",
+  "commit_type": "feat",
+  "commit_msg": "feat: implement git haiku pipeline with configurable depth",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 4,
+  "title": "CASE FILE — The Eyes Were Built First",
+  "subtitle": "He wrote 774 lines to teach the machine what he refused to see.",
+  "act1_title": "The Architect's Workshop",
+  "when_where": "9:05 AM on main branch. Morning light, the kind that shows dust on the desk. His terminal was already warm when he arrived, as if the code had been waiting for him all night. The haiku pipeline was born here, in the silence before the office woke up.",
+  "act2_title": "Git Crime Lexicon Sworn In",
+  "who_whom": "Omkar against himself. The git_commit_haiku.py file—774 lines of confession machinery—was the weapon. It would read commits, pull their diffs, interrogate the actual function names (load_config, load_haiku_director_prompt, fetch_actions) and turn them into 3-act noir case files. The app didn't judge yet. He did that for it.",
+  "act3_title": "The Pipeline Takes Shape",
+  "what_why": "He hardcoded the GIT_CRIME_LEXICON: feat as 'Rising action — He acquired a new weapon', fix as 'Damage control — The alibi was falling apart', test as 'Paranoia — He didn't trust himself. He built a lie detector.' Every commit type got a noir epitaph. Then he built load_config() to read config.json, load_haiku_director_prompt() to inject MAX THE DESTROYER's voice, and the async machinery to call Anthropic or MiniMax. The depth modes—git_commit vs. git_diff—meant the LLM could see just the message, or the actual code that changed. He chose to see everything. The more he built, the more the machine could see him.",
+  "verdict": "He didn't create a tool to understand his code; he created a confessional booth and locked himself inside."
+}

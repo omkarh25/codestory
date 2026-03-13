@@ -1,0 +1,18 @@
+{
+  "commit_hash": "f89ae076c069a98cb8c20502da44e95b8d9e7145",
+  "commit_type": "docs",
+  "commit_msg": "docs: add Director files — HaikuDirector, EpisodeDirector, RepoStory",
+  "branch": "main",
+  "author": "Omkar",
+  "date": "2026-03-13 09:05:06 +0530",
+  "chronological_index": 3,
+  "title": "CASE FILE — The Director's Ledger",
+  "subtitle": "Morning on main, he wrote down everything—the HaikuDirector, the EpisodeDirector, the RepoStory—as if confession could be filed away.",
+  "act1_title": "Daylight Over the Repository",
+  "when_where": "9:05 AM on March 13th. Main branch, the hour when coffee is still hot and the office pretends to move forward. Omkar sat at the terminal in broad daylight, no blinds, no excuses—just the screen and the documentation that would become his alibi.",
+  "act2_title": "The Architect and His Invention",
+  "who_whom": "The man who built the machinery faced down the machinery itself: HaikuDirector, EpisodeDirector, RepoStory—three new players in a game he'd rigged from the start. He was both the director and the directed, both the storyteller and the story being told. The repo was no longer his tool; it had become his confession.",
+  "act3_title": "The Written Record",
+  "what_why": "He documented it all. Not to hide it—to immortalize it. Every file, every director, every narrative layer went into the docs like evidence filed in triplicate. He told himself it was clarity, transparency, good practice. But really, he was writing the screenplay of his own obsession, making it official, making it permanent, making sure that when someone read these files, they would understand exactly how deeply he had orchestrated everything. The confession was filed. The crime was now part of the public record.",
+  "verdict": "He didn't document the code—he documented his need to be remembered as the man who built it."
+}

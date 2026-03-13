@@ -55,6 +55,15 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# CRITICAL: Set offscreen mode AND create QApplication BEFORE any Qt imports
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+# Create QApplication at module load time before codeQT imports anything
+from PyQt6.QtWidgets import QApplication
+_qt_app = QApplication.instance()
+if _qt_app is None:
+    _qt_app = QApplication([])
+
 LOGGER = logging.getLogger(__name__)
 
 _REPO_ROOT = Path(__file__).resolve().parent
@@ -188,7 +197,8 @@ def _ensure_offscreen_app() -> "QApplication":
     from PyQt6.QtWidgets import QApplication
     app = QApplication.instance()
     if app is None:
-        app = QApplication(sys.argv)
+        # Create with empty argv to avoid GUI initialization issues
+        app = QApplication([])
     return app
 
 
