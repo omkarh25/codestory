@@ -48,19 +48,41 @@ TEXT_EPISODE_T = "#e8d5b7"
 TYPEWRITER_INTERVAL_MS = 30
 
 
+def _get_time_period(hour: int) -> str:
+    """Get time period text based on hour (24-hour format) - 3 words for drama."""
+    if 5 <= hour < 8:
+        return "Before Dawn"
+    elif 8 <= hour < 12:
+        return "Morning Light"
+    elif 12 <= hour < 14:
+        return "High Noon"
+    elif 14 <= hour < 17:
+        return "Afternoon Shadows"
+    elif 17 <= hour < 20:
+        return "Evening Gathers"
+    elif 20 <= hour < 22:
+        return "Night Falls"
+    elif 22 <= hour < 24:
+        return "Late Night"
+    else:  # 0-5
+        return "Witching Hour"
+
+
 def _format_datetime(iso_date: str) -> str:
-    """Format ISO date string to human-readable format."""
+    """Format ISO date string to human-readable format with day of week and time period."""
     if not iso_date:
         return ""
     try:
         from datetime import datetime
         dt = datetime.fromisoformat(iso_date.replace(" +0530", "+05:30").replace(" +0000", "+00:00"))
-        return dt.strftime("%d %b %Y %I:%M %p")
+        time_period = _get_time_period(dt.hour)
+        time_str = dt.strftime("%I:%M %p").lower()
+        return dt.strftime("%d %b %Y %a ") + f"{time_period} {time_str}"
     except Exception:
         try:
             from datetime import datetime
             dt = datetime.strptime(iso_date[:10], "%Y-%m-%d")
-            return dt.strftime("%d %b %Y")
+            return dt.strftime("%d %b %Y %a")
         except Exception:
             return iso_date[:10]
 
