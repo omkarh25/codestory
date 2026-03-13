@@ -96,6 +96,8 @@ Scrollable noir case-file layout showing episodic acts: title, decade summary, b
 
 ## CLI Usage
 
+### Main Pipeline
+
 ```bash
 # Generate haikus for current repo
 python codestory.py --generate-haikus
@@ -117,6 +119,45 @@ python codestory.py --reset-db
 
 # Full pipeline: generate + play
 python codestory.py --generate-haikus --generate-episodes --play
+```
+
+### CRUD Operations (Haikus)
+
+**Delete a haiku** (removes from DB + cleans up JSON files):
+```bash
+python git_commit_haiku.py --delete f4096af
+```
+
+**Regenerate a haiku** (delete + re-LLM-generate after failed attempt):
+```bash
+python git_commit_haiku.py --regenerate f4096af
+```
+
+**Check consistency** (orphaned/missing JSON files, duplicate filenames):
+```bash
+python git_commit_haiku.py --validate
+```
+
+**Rebuild chronological indices** (after git history rebase/force-push):
+```bash
+python git_commit_haiku.py --rebuild-indices
+```
+
+### CRUD Operations (Episodes)
+
+**Delete an episode** (removes from DB + un-marks its haikus as compiled):
+```bash
+python changelog_episodes.py --delete 1
+```
+
+**Regenerate an episode** (delete + re-synthesize from fresh haikus):
+```bash
+python changelog_episodes.py --regenerate 1
+```
+
+**Check episode consistency** (orphaned JSONs, missing files, broken commit references):
+```bash
+python changelog_episodes.py --validate
 ```
 
 ### Git Commit Hook (CI/CD)
