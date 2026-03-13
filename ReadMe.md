@@ -109,64 +109,28 @@ Scrollable noir case-file layout showing episodic acts: title, decade summary, b
 
 ```bash
 # Generate haikus for current repo
-python codestory.py --generate-haikus
+codestory --generate-haikus
+
+# Or using Python module syntax
+python -m codestory --generate-haikus
 
 # Generate haikus with git diff depth (more dramatic)
-python codestory.py --generate-haikus --depth git_diff
+codestory --generate-haikus --depth git_diff
 
 # Generate an episode (needs 10+ uncompiled haikus)
-python codestory.py --generate-episodes
+codestory --generate-episodes
 
 # Launch the PyQt viewer
-python codestory.py --play
+codestory --play
 
 # Point at any repo
-python codestory.py --repo /path/to/other/repo --generate-haikus
+codestory --repo /path/to/other/repo --generate-haikus
 
 # Reset the database (fresh start)
-python codestory.py --reset-db
+codestory --reset-db
 
 # Full pipeline: generate + play
-python codestory.py --generate-haikus --generate-episodes --play
-```
-
-### CRUD Operations (Haikus)
-
-**Delete a haiku** (removes from DB + cleans up JSON files):
-```bash
-python git_commit_haiku.py --delete f4096af
-```
-
-**Regenerate a haiku** (delete + re-LLM-generate after failed attempt):
-```bash
-python git_commit_haiku.py --regenerate f4096af
-```
-
-**Check consistency** (orphaned/missing JSON files, duplicate filenames):
-```bash
-python git_commit_haiku.py --validate
-```
-
-**Rebuild chronological indices** (after git history rebase/force-push):
-```bash
-python git_commit_haiku.py --rebuild-indices
-```
-
-### CRUD Operations (Episodes)
-
-**Delete an episode** (removes from DB + un-marks its haikus as compiled):
-```bash
-python changelog_episodes.py --delete 1
-```
-
-**Regenerate an episode** (delete + re-synthesize from fresh haikus):
-```bash
-python changelog_episodes.py --regenerate 1
-```
-
-**Check episode consistency** (orphaned JSONs, missing files, broken commit references):
-```bash
-python changelog_episodes.py --validate
+codestory --generate-haikus --generate-episodes --play
 ```
 
 ### Git Commit Hook (CI/CD)
@@ -175,7 +139,7 @@ Auto-generate a haiku on every commit. Add to `.git/hooks/post-commit`:
 
 ```bash
 #!/bin/bash
-conda run -n macenv python /path/to/codestory.py --generate-haikus --max 1
+conda run -n macenv codestory --generate-haikus --max 1
 ```
 
 Make it executable:
@@ -211,26 +175,43 @@ cp llm.env.example llm.env
 # Edit llm.env and add your ANTHROPIC_API_KEY
 
 # Point at a repo and generate
-python codestory.py --repo /path/to/your/repo --generate-haikus --play
+codestory --repo /path/to/your/repo --generate-haikus --play
 ```
 
 ### Config (`config.json`)
 
 ```json
 {
-    "tmChronicles": {
+    "codestory": {
         "repo_path": ".",
-        "max_haiku_per_run": 12,
-        "batch_size": 3,
-        "haiku_per_episode": 10,
-        "db_path": "tmChron.db",
-        "output_dir": "Assets/haikuJSON",
-        "haiku_provider": "anthropic",
-        "haiku_model": "claude-haiku-4-5-20251001",
-        "haiku_depth": "git_commit",
-        "episode_provider": "anthropic",
-        "episode_model": "claude-haiku-4-5-20251001",
-        "episode_depth": "git_commit",
+        "db_path": ".codestory/codestory.db",
+        "output_dir": ".codestory/assets",
+        "haiku": {
+            "provider": "anthropic",
+            "model": "claude-haiku-4-5-20251001",
+            "depth": "git_commit",
+            "max_per_run": 12,
+            "batch_size": 3
+        },
+        "episode": {
+            "provider": "anthropic",
+            "model": "claude-haiku-4-5-20251001",
+            "depth": "git_commit",
+            "haikus_per_episode": 10
+        },
+        "yt_shorts": {
+            "output_dir": ".codestory/assets/videos",
+            "slide_duration": 2.5,
+            "verdict_duration": 4.0
+        },
+        "audio": {
+            "volume": 0.3,
+            "fade_in_s": 1.0,
+            "fade_out_s": 1.5
+        },
+        "render": {
+            "profile": "short"
+        },
         "oldest_first": true
     }
 }

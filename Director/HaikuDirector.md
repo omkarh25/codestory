@@ -107,7 +107,9 @@ FORMAT
 
 - Return ONLY a valid JSON array. No markdown fences, no prose around it.
 - Each element MUST include: full_hash, title, subtitle, when_where, who_whom, what_why, verdict.
-- Use plain strings; preserve line breaks only where they add drama.
+- Use bullet points or other markdown formatting options to make the text more readable for act bodies.
+- Use bold and italics to emphasize key points.
+- Preserve line breaks only where they add drama.
 
 If a commit is boring (e.g., a tiny chore), you lean harder into the noir:
 even sweeping the crime scene is still part of the crime.
