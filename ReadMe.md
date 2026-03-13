@@ -91,14 +91,18 @@ Scrollable noir case-file layout showing episodic acts: title, decade summary, b
 
 | Key | Action |
 |-----|--------|
-| `SPACE` | Advance (next act → next haiku) |
-| `←` / `→` | Navigate between haikus |
-| `H` | Switch to Haiku mode |
+| `SPACE` | Advance (next act → next haiku / moment) |
+| `←` / `→` | Navigate between haikus or moments |
+| `H` | Switch to Haiku chronicle mode |
 | `E` | Switch to Episode mode |
+| `N` | Switch to **Now Moments** mode ⚡ |
 | `G` | Generate new haikus (triggers pipeline) |
 | `P` | Generate new episode |
 | `R` | Refresh from DB |
 | `F` | Toggle fullscreen |
+| `L` | Toggle ♥ heart flag |
+| `S` | Toggle ⭐ star flag |
+| `B` | Toggle 💾 save flag |
 | `Q` / `ESC` | Quit |
 
 ---
@@ -131,6 +135,46 @@ codestory --reset-db
 
 # Full pipeline: generate + play
 codestory --generate-haikus --generate-episodes --play
+```
+
+### ⚡ Now — Clearing the Mind
+
+`codestory --now` is a different kind of command. It doesn't read past history.  
+It reads **right now** — and synthesises one clarity haiku from everything in front of you.
+
+```bash
+# Capture this exact moment — what you're doing, what's pending, what changed
+codestory --now
+```
+
+**What it reads (in order):**
+1. `TODO.md` in the repo root
+2. `.codestory/TODO.md` (if it exists)
+3. Current unstaged + staged git diff
+4. Last N recent commits (default: 3, configurable via `now_commits` in config)
+
+**What it generates:**  
+One single 3-act + verdict haiku synthesised from all of the above — a moment of clarity.
+
+**Tone intelligence** — MAX THE DESTROYER adapts based on what he finds:
+
+| Context | Tone |
+|---------|------|
+| Empty TODO + no diff | Meditative. The space before the stroke. |
+| Rich TODO + no diff | Strategic. Name the one thing worth starting. |
+| Rich diff + sparse TODO | Actionable. This code wants to become something. |
+| Both rich | Lighthouse mode. Cut through the fog. |
+
+**Stored as a `moment`** — not in the haiku chronicle. Each `--now` run is saved to  
+the `now_moments` table in the DB. Press **`N`** in the viewer to browse all past moments.
+
+```bash
+# Example output:
+⚡ CODESTORY — NOW
+🧭 Collecting your current moment...
+✅ Moment captured: NOW — The Work That Wants to Be Done
+   id=3  captured_at=2026-03-13T19:45:22
+[PyQt6 viewer opens directly on the new moment]
 ```
 
 ### Git Commit Hook (CI/CD)
@@ -228,7 +272,8 @@ The LLM narrator persona lives in `Director/`:
 | `Director/HaikuDirector.md` | MAX THE DESTROYER's brief for haiku generation — **do not modify** |
 | `Director/EpisodeDirector.md` | MAX's brief for episodic act writing |
 | `Director/RepoStory.md` | Origin story preface — the baseline context for all episodes |
-| `Director/ReleaseCutDirector.md` | ✨ **NEW** — Cinematic storyboard generator. Takes episode + case files, produces JSON shot list for video renderer |
+| `Director/ReleaseCutDirector.md` | Cinematic storyboard generator. Takes episode + case files, produces JSON shot list for video renderer |
+| `Director/Now.md` | ⚡ **NEW** — The "still point" prompt. Guides MAX to synthesise a clarity haiku from TODO + diff + recent commits |
 
 Edit these files to tune tone, lexicon, or output format without touching code.
 
@@ -298,25 +343,29 @@ codestory.py / src/codestory/__main__.py    ← CLI entry point
 ├── src/codestory/pipeline/
 │   ├── haiku.py          ← Haiku pipeline (git log → LLM → DB)
 │   ├── episode.py        ← Episode pipeline (DB haikus → LLM → DB)
+│   ├── now.py            ← ⚡ Now pipeline (TODO + diff + commits → LLM → moments DB)
 │   └── git.py            ← Git log reader + crime lexicon
 ├── src/codestory/render/
 │   ├── video.py          ← Render facade (delegates to ytpipeline)
-│   ├── markdown.py       ← ✨ Director's Cut casefile .md writer
-│   └── storyboard.py     ← ✨ Storyboard JSON generator (LLM + default)
+│   ├── markdown.py       ← Director's Cut casefile .md writer
+│   └── storyboard.py     ← Storyboard JSON generator (LLM + default)
 ├── src/codestory/director/
-│   └── prompts.py        ← Prompt loader (HaikuDirector, EpisodeDirector, ReleaseCutDirector)
-├── ytpipeline.py         ← PNG slides → ffmpeg + BGM → MP4
-├── codeQT.py             ← PyQt6 viewer
-├── config.json           ← All settings
+│   └── prompts.py        ← Prompt loader (all Director/*.md files)
+├── src/codestory/viewer/
+│   └── qt_viewer.py      ← PyQt6 viewer (haiku + episode + ⚡ moments modes)
+├── src/codestory/core/
+│   └── database.py       ← SQLite DB (haiku_commits, chronicle_episodes, ⚡ now_moments)
+├── config.json           ← All settings (add "now_commits": 3 to control depth)
 ├── llm.env               ← API keys (gitignored)
 ├── Director/
-│   ├── HaikuDirector.md        ← Haiku LLM brief (do not modify)
+│   ├── HaikuDirector.md        ← Haiku LLM brief
 │   ├── EpisodeDirector.md      ← Episode LLM brief
 │   ├── RepoStory.md            ← Origin story preface
-│   └── ReleaseCutDirector.md   ← ✨ Storyboard shot-list generator
+│   ├── ReleaseCutDirector.md   ← Storyboard shot-list generator
+│   └── Now.md                  ← ⚡ Now clarity haiku brief
 └── Assets/
     ├── YtShorts/         ← Rendered MP4 output + casefile .md files
-    ├── audio/            ← ✨ BGM tracks (see README inside)
+    ├── audio/            ← BGM tracks (see README inside)
     └── haikuJSON/        ← Haiku JSON files
 ```
 
@@ -372,6 +421,27 @@ codestory --generate-haikus --generate-episodes --generate-storyboard --generate
 ---
 
 ## Changelog
+
+### 2026-03-13 — `codestory --now`
+
+**Feature**: Clarity-haiku generator — `codestory --now`
+
+A new command that synthesises ONE 3-act + verdict haiku from the developer's
+current state: TODO files, uncommitted git diff, and recent commits.
+
+**New files:**
+- `Director/Now.md` — MAX THE DESTROYER's "still point" brief (adapts tone based on context weight)
+- `src/codestory/pipeline/now.py` — Context collector + single LLM call + DB save
+- DB table `now_moments` — persistent journal of all `--now` moments (with snapshots)
+
+**Viewer changes (`N` key):**
+- Press `N` to enter Now Moments mode — a dedicated view with its own `HaikuPlayerWidget`
+- `←→` navigates through past moments like haikus
+- Full 3-act typewriter + verdict progression
+- `L / S / B` flags work on moments (routed to `toggle_moment_flag`)
+- `launch_app_now(cfg, moment_id)` opens directly to the new moment after generation
+
+---
 
 ### 2026-03-13
 

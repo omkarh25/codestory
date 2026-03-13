@@ -134,11 +134,34 @@ class DatabaseManager:
                     created_at      TEXT DEFAULT (datetime('now'))
                 );
 
+                -- Now moments table: one row per --now invocation
+                CREATE TABLE IF NOT EXISTS now_moments (
+                    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                    captured_at       TEXT NOT NULL,
+                    title             TEXT,
+                    subtitle          TEXT,
+                    act1_title        TEXT,
+                    when_where        TEXT,
+                    act2_title        TEXT,
+                    who_whom          TEXT,
+                    act3_title        TEXT,
+                    what_why          TEXT,
+                    verdict           TEXT,
+                    todo_snapshot     TEXT,
+                    diff_snapshot     TEXT,
+                    commits_snapshot  TEXT,
+                    is_hearted        INTEGER DEFAULT 0,
+                    is_starred        INTEGER DEFAULT 0,
+                    is_saved          INTEGER DEFAULT 0,
+                    created_at        TEXT DEFAULT (datetime('now'))
+                );
+
                 -- Indexes for performance
                 CREATE INDEX IF NOT EXISTS idx_haiku_chron ON haiku_commits(chronological_index);
                 CREATE INDEX IF NOT EXISTS idx_haiku_asset_hash ON haiku_assets(commit_hash);
                 CREATE INDEX IF NOT EXISTS idx_episode_num ON chronicle_episodes(episode_number);
                 CREATE INDEX IF NOT EXISTS idx_episode_asset_num ON episode_assets(episode_number);
+                CREATE INDEX IF NOT EXISTS idx_moment_captured ON now_moments(captured_at);
             """)
             conn.commit()
             LOGGER.debug("Database schema initialized")
@@ -521,6 +544,159 @@ class DatabaseManager:
         try:
             row = conn.execute("SELECT COUNT(*) FROM chronicle_episodes").fetchone()
             return row[0] if row else 0
+        finally:
+            conn.close()
+
+    # ==================== NOW MOMENTS OPERATIONS ====================
+
+    def save_moment(
+        self,
+        haiku_data: Dict[str, Any],
+        captured_at: str,
+        todo_snapshot: str = "",
+        diff_snapshot: str = "",
+        commits_snapshot: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Save a Now moment to the now_moments table.
+
+        Args:
+            haiku_data: Haiku fields from LLM (title, subtitle, acts, verdict).
+            captured_at: ISO timestamp when --now was invoked.
+            todo_snapshot: Raw TODO text used as context.
+            diff_snapshot: Raw git diff used as context.
+            commits_snapshot: List of recent commit dicts used as context.
+
+        Returns:
+            Full moment dict with id and all fields.
+        """
+        commits_json = json.dumps(commits_snapshot or [], ensure_ascii=False)
+
+        conn = self._get_connection()
+        try:
+            cursor = conn.execute("""
+                INSERT INTO now_moments
+                (captured_at, title, subtitle, act1_title, when_where,
+                 act2_title, who_whom, act3_title, what_why, verdict,
+                 todo_snapshot, diff_snapshot, commits_snapshot)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                captured_at,
+                haiku_data.get("title", ""),
+                haiku_data.get("subtitle", ""),
+                haiku_data.get("act1_title", ""),
+                haiku_data.get("when_where", ""),
+                haiku_data.get("act2_title", ""),
+                haiku_data.get("who_whom", ""),
+                haiku_data.get("act3_title", ""),
+                haiku_data.get("what_why", ""),
+                haiku_data.get("verdict", ""),
+                todo_snapshot,
+                diff_snapshot,
+                commits_json,
+            ))
+            conn.commit()
+
+            moment_id = cursor.lastrowid
+            LOGGER.info("Saved Now moment id=%d: %s", moment_id, haiku_data.get("title", "?"))
+
+            return {
+                "id":               moment_id,
+                "captured_at":      captured_at,
+                "title":            haiku_data.get("title", ""),
+                "subtitle":         haiku_data.get("subtitle", ""),
+                "act1_title":       haiku_data.get("act1_title", ""),
+                "when_where":       haiku_data.get("when_where", ""),
+                "act2_title":       haiku_data.get("act2_title", ""),
+                "who_whom":         haiku_data.get("who_whom", ""),
+                "act3_title":       haiku_data.get("act3_title", ""),
+                "what_why":         haiku_data.get("what_why", ""),
+                "verdict":          haiku_data.get("verdict", ""),
+                "todo_snapshot":    todo_snapshot,
+                "diff_snapshot":    diff_snapshot,
+                "commits_snapshot": commits_json,
+                "is_hearted":       0,
+                "is_starred":       0,
+                "is_saved":         0,
+            }
+        finally:
+            conn.close()
+
+    def get_all_moments(self) -> List[Dict[str, Any]]:
+        """
+        Get all Now moments ordered by capture time (oldest first).
+
+        Returns:
+            List of moment dicts.
+        """
+        conn = self._get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT * FROM now_moments ORDER BY captured_at ASC"
+            ).fetchall()
+            return [dict(row) for row in rows]
+        finally:
+            conn.close()
+
+    def get_moment_by_id(self, moment_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get a single Now moment by ID.
+
+        Args:
+            moment_id: Primary key of the moment.
+
+        Returns:
+            Moment dict, or None if not found.
+        """
+        conn = self._get_connection()
+        try:
+            row = conn.execute(
+                "SELECT * FROM now_moments WHERE id = ?", (moment_id,)
+            ).fetchone()
+            return dict(row) if row else None
+        finally:
+            conn.close()
+
+    def get_moment_count(self) -> int:
+        """Get total count of saved Now moments."""
+        conn = self._get_connection()
+        try:
+            row = conn.execute("SELECT COUNT(*) FROM now_moments").fetchone()
+            return row[0] if row else 0
+        finally:
+            conn.close()
+
+    def toggle_moment_flag(self, moment_id: int, flag: str) -> int:
+        """
+        Toggle a flag on a Now moment.
+
+        Args:
+            moment_id: Primary key of the moment.
+            flag: One of 'is_hearted', 'is_starred', 'is_saved'.
+
+        Returns:
+            New flag value (0 or 1), or -1 on error.
+        """
+        if flag not in ("is_hearted", "is_starred", "is_saved"):
+            return -1
+
+        conn = self._get_connection()
+        try:
+            row = conn.execute(
+                f"SELECT {flag} FROM now_moments WHERE id = ?", (moment_id,)
+            ).fetchone()
+
+            if not row:
+                return -1
+
+            new_val = 0 if row[0] else 1
+            conn.execute(
+                f"UPDATE now_moments SET {flag} = ? WHERE id = ?",
+                (new_val, moment_id),
+            )
+            conn.commit()
+            LOGGER.info("Toggled %s for moment id=%d: %d", flag, moment_id, new_val)
+            return new_val
         finally:
             conn.close()
 

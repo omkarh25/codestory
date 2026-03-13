@@ -412,6 +412,7 @@ disown
         args.play,
         args.commit,
         args.push,
+        getattr(args, "now", False),
     ]):
         db_path = cfg.get("db_path", ".codestory/codestory.db")
         db_exists = Path(db_path).exists()
@@ -642,6 +643,43 @@ disown
             print("🎬 COMMIT COMPLETE!")
             print("="*60 + "\n")
             return 0
+
+    # ── NOW FLOW ────────────────────────────────────────────────────────────
+    if getattr(args, "now", False):
+        print("\n" + "=" * 60)
+        print("⚡ CODESTORY — NOW")
+        print("=" * 60 + "\n")
+
+        print("🧭 Collecting your current moment...")
+
+        try:
+            from codestory.pipeline.now import generate_now
+            moment = generate_now(config=cfg)
+        except Exception as exc:
+            print_error(f"Now pipeline failed: {exc}")
+            LOGGER.error("--now pipeline failed: %s", exc)
+            return 1
+
+        if not moment:
+            print_error("No moment generated — check your API key and config.")
+            return 1
+
+        print_success(f"Moment captured: {moment.get('title', 'NOW')}")
+        print(f"   id={moment.get('id')}  captured_at={moment.get('captured_at', '')[:19]}")
+        print()
+
+        # Launch viewer in 'now' mode — auto-navigated to the Moments tab
+        try:
+            from codestory.viewer.qt_viewer import launch_app_now
+            return launch_app_now(cfg, moment_id=moment.get("id"))
+        except ImportError as exc:
+            print_error(f"PyQt6 not available: {exc}")
+            print("Install with: pip install PyQt6")
+            return 1
+        except Exception as exc:
+            print_error(f"Viewer launch failed: {exc}")
+            LOGGER.error("Now viewer launch failed: %s", exc)
+            return 1
 
     # Viewer: launch PyQt6
     if args.play:

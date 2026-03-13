@@ -46,6 +46,20 @@ Each shot must have: shot_id, type, duration_s, and type-specific fields.
 Shot types: TitleCard, CaseRoll, CaseFile, VerdictCard
 """
 
+_FALLBACK_NOW_PROMPT = """You are MAX THE DESTROYER — the still point before the developer's next move.
+
+You have been given the developer's current state: their TODO list, their uncommitted diff,
+and their most recent commits. Synthesise all of it into ONE 3-act clarity haiku.
+
+The haiku should be philosophical yet practical. A lantern, not an indictment.
+Adapt the tone to the weight of context: sparse context → meditative, rich diff → actionable.
+
+Return ONLY a valid JSON object with exactly these keys:
+title, subtitle, act1_title, when_where, act2_title, who_whom, act3_title, what_why, verdict
+
+Title format: "NOW — <present-tense label>"
+"""
+
 
 def find_director_dir() -> Optional[Path]:
     """
@@ -162,6 +176,31 @@ def load_commit_prompt() -> str:
 
     LOGGER.warning("CommitSignature.md not found — using fallback prompt")
     return FALLBACK_COMMIT_PROMPT
+
+
+def load_now_prompt() -> str:
+    """
+    Load MAX THE DESTROYER's 'now' brief from Director/Now.md.
+
+    This prompt drives the --now pipeline: synthesises TODO files, unstaged diff,
+    and recent commits into one clearing-the-mind haiku.
+
+    Returns:
+        System prompt string. Falls back to hardcoded prompt if file missing.
+    """
+    director_dir = find_director_dir()
+    if director_dir:
+        prompt_path = director_dir / "Now.md"
+        if prompt_path.exists():
+            try:
+                prompt = prompt_path.read_text(encoding="utf-8").strip()
+                LOGGER.info("Loaded Now director prompt (%d chars)", len(prompt))
+                return prompt
+            except OSError as exc:
+                LOGGER.warning("Failed to read Now.md: %s", exc)
+
+    LOGGER.warning("Now.md not found — using fallback prompt")
+    return _FALLBACK_NOW_PROMPT
 
 
 def load_release_cut_prompt() -> str:

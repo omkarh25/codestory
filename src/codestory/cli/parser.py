@@ -89,6 +89,18 @@ examples:
         help="Skip YouTube Shorts video generation",
     )
 
+    # ── Now ────────────────────────────────────────────────────────────────────
+    now_group = parser.add_argument_group("now")
+    now_group.add_argument(
+        "--now",
+        action="store_true",
+        help=(
+            "Capture a 'Now' moment — reads TODO.md, current git diff and "
+            "last N commits, generates one clearing-the-mind haiku, saves it "
+            "to the moments table, and launches the viewer on it."
+        ),
+    )
+
     # ── Viewer ─────────────────────────────────────────────────────────────────
     viewer = parser.add_argument_group("viewer")
     viewer.add_argument(
