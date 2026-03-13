@@ -77,6 +77,35 @@ TEXT_EPISODE_T = "#e8d5b7"
 
 TYPEWRITER_INTERVAL_MS = 30
 
+
+def _format_datetime(iso_date: str) -> str:
+    """
+    Format ISO date string to human-readable format.
+    
+    Args:
+        iso_date: ISO format date string (e.g., "2026-03-13 12:25:38 +0530")
+    
+    Returns:
+        Formatted string like "13 Mar 2026 12:25 PM"
+    """
+    if not iso_date:
+        return ""
+    
+    # Parse the ISO date
+    try:
+        # Handle formats like "2026-03-13 12:25:38 +0530"
+        from datetime import datetime
+        dt = datetime.fromisoformat(iso_date.replace(" +0530", "+05:30").replace(" +0000", "+00:00"))
+        return dt.strftime("%d %b %Y %I:%M %p")
+    except Exception:
+        # Fallback: if it's just a date part
+        try:
+            from datetime import datetime
+            dt = datetime.strptime(iso_date[:10], "%Y-%m-%d")
+            return dt.strftime("%d %b %Y")
+        except Exception:
+            return iso_date[:10]
+
 GIT_CRIME_LEXICON_DISPLAY = {
     "feat":     "Rising action — He acquired a new weapon",
     "fix":      "Damage control — The alibi was falling apart",
@@ -632,7 +661,9 @@ class HaikuPlayerWidget(QWidget):
         commit_hash = haiku.get("commit_hash") or haiku.get("hash", "?")
         short_hash  = commit_hash[:7]
         branch      = haiku.get("branch", "main") or "main"
-        date        = (haiku.get("commit_date") or haiku.get("date", ""))[:10]
+        # Format the full datetime including time
+        raw_date = haiku.get("commit_date") or haiku.get("date", "")
+        date = _format_datetime(raw_date)
         commit_msg  = haiku.get("commit_msg") or haiku.get("commit_message", "")
         author      = haiku.get("author", "")
         commit_type = (haiku.get("commit_type") or "other").lower()

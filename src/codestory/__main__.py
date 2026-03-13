@@ -258,7 +258,7 @@ disown
         # Step 2: Generate commit message
         print("\n🤖 MAX THE DESTROYER is crafting your confession...")
         try:
-            success, commit_hash = commit_and_push(cfg, do_push=do_push)
+            success, commit_hash, commit_msg = commit_and_push(cfg, do_push=do_push)
         except Exception as exc:
             print_error(f"Commit failed: {exc}")
             LOGGER.error("Commit flow failed: %s", exc)
@@ -269,6 +269,8 @@ disown
             return 1
         
         print(f"\n✅ Committed: {commit_hash}")
+        if commit_msg:
+            print(f"   📝 {commit_msg}")
         
         # Step 3: Push if requested
         if do_push:

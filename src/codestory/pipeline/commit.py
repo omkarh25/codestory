@@ -116,7 +116,7 @@ async def run_commit_pipeline(
     config: Dict[str, Any],
     do_push: bool = False,
     do_ytshorts: bool = True,
-) -> Tuple[bool, str]:
+) -> Tuple[bool, str, str]:
     """
     Run the commit message generation and git commit/push pipeline.
 
@@ -126,7 +126,7 @@ async def run_commit_pipeline(
         do_ytshorts: Whether to generate YouTube shorts (for main __main__ flow).
 
     Returns:
-        Tuple of (success: bool, commit_hash: str)
+        Tuple of (success: bool, commit_hash: str, commit_message: str)
     """
     import asyncio
 
@@ -193,7 +193,7 @@ async def run_commit_pipeline(
             branch = get_current_branch(repo_path)
             LOGGER.info("Pushed to origin/%s", branch)
 
-    return True, commit_hash
+    return True, commit_hash, commit_msg
 
 
 def generate_commit_message_sync(
@@ -241,7 +241,7 @@ def generate_commit_message_sync(
 def commit_and_push(
     config: Optional[Dict[str, Any]] = None,
     do_push: bool = False,
-) -> Tuple[bool, str]:
+) -> Tuple[bool, str, str]:
     """
     Generate commit message, commit, and optionally push.
 
@@ -250,9 +250,10 @@ def commit_and_push(
         do_push: Whether to push after commit.
 
     Returns:
-        Tuple of (success: bool, commit_hash: str)
+        Tuple of (success: bool, commit_hash: str, commit_message: str)
     """
     import asyncio
+    from codestory.core import load_config
 
     cfg = config if config else load_config() if config is None else config
 
@@ -261,4 +262,4 @@ def commit_and_push(
         return asyncio.run(run_commit_pipeline(cfg, do_push=do_push))
     except Exception as exc:
         LOGGER.error("Commit pipeline failed: %s", exc)
-        return False, ""
+        return False, "", ""
