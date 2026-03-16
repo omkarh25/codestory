@@ -1,7 +1,7 @@
 """Shared presentation view-model builders for case-file renderers.
 
-This module provides a single formatting contract so multiple viewers
-(PyQt and HTMX) render the same canonical header and act metadata.
+This module lives under core to avoid circular imports between
+viewer and render packages.
 """
 
 from __future__ import annotations

@@ -59,3 +59,5 @@ dist/
 build/
 *.egg-info/
 .eggs/
+
+Assets/haikus/

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from codestory.core.logging import get_logger
-from codestory.render.presentation import build_case_file_presentation
+from codestory.core.presentation import build_case_file_presentation
 
 LOGGER = get_logger(__name__)
 

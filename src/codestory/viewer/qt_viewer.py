@@ -24,7 +24,7 @@ from PyQt6.QtWidgets import (
 )
 
 from codestory.core.logging import get_logger
-from codestory.render.presentation import build_case_file_presentation
+from codestory.core.presentation import build_case_file_presentation
 
 LOGGER = get_logger(__name__)
 
@@ -383,7 +383,7 @@ def _label(
         font.setWeight(QFont.Weight.Bold)
     font.setItalic(italic)
     if monospace:
-        font.setFamilies(["Menlo", "Monaco", "Courier New", "monospace"])
+        font.setFamilies(["Menlo", "Monaco", "Courier New"])
         font.setStyleHint(QFont.StyleHint.Monospace)
     lbl.setFont(font)
     lbl.setAlignment(align)
@@ -561,7 +561,7 @@ class HaikuPlayerWidget(QWidget):
 
     def _meta_html(self, key: str, value: str, monospace: bool = False) -> str:
         val_style = (
-            f"font-family: 'Menlo', 'Monaco', monospace; color: {TEXT_META_CODE};"
+            f"font-family: 'Menlo', 'Monaco', 'Courier New'; color: {TEXT_META_CODE};"
             if monospace
             else f"color: {TEXT_META_VAL};"
         )
@@ -586,7 +586,7 @@ class HaikuPlayerWidget(QWidget):
         self._lbl_subtitle.setText(subtitle)
 
         type_display = (
-            f'<span style="color:{TEXT_META_CODE};font-family:monospace;">{case["commit_type_label"]}</span>'
+            f'<span style="color:{TEXT_META_CODE};font-family:Menlo, Monaco, Courier New;">{case["commit_type_label"]}</span>'
             f' — <span style="color:{TEXT_META_VAL};font-style:italic;">{case["crime_text"]}</span>'
         )
         self._lbl_date.setText(self._meta_html("Date", case["formatted_date"]))
