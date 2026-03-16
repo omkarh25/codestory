@@ -1,0 +1,17 @@
+{
+  "commit_hash": "0e37ac9",
+  "short_hash": "0e37ac9",
+  "commit_type": "haiku",
+  "commit_msg": "Release v0.2.0-beta — introduce files API for session storage",
+  "branch": "main",
+  "author": "Steel devs",
+  "date": "2025-07-24 20:25:00 +0000",
+  "chronological_index": 2,
+
+  "title": "HAIKU — Evidence Locker",
+  "subtitle": "Screenshots, HTML, and crumbs of state finally get somewhere to live.",
+
+  "line1": "Loose bits on the floor,",
+  "line2": "files stack in cold metal drawers,",
+  "line3": "evidence can breathe."
+}

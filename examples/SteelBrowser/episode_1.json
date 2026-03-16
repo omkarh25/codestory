@@ -1,0 +1,24 @@
+{
+  "commit_hash": "0e37ac9",
+  "short_hash": "0e37ac9",
+  "commit_type": "release",
+  "commit_msg": "Release v0.2.0-beta",
+  "branch": "main",
+  "author": "github-actions",
+  "date": "2025-07-24 20:25:00 +0000",
+  "chronological_index": 4,
+
+  "title": "CASE FILE — The Idle Browser",
+  "subtitle": "20:25 UTC on main, and Steel taught its browsers to wait without wasting a heartbeat.",
+
+  "act1_title": "Too Many Engines, Not Enough Roads",
+  "when_where": "July 24th, 20:25 UTC. Main branch, the night the dashboard looked like a traffic jam. Every new job spun up a fresh Chrome, burned a fresh set of resources, and died alone when the run was over. Sessions scattered across logs, files living off to the side, operators juggling tabs like flaming knives.",
+
+  "act2_title": "The Deal With the Machine",
+  "who_whom": "Steel versus its own creation. On one side, the cluster bill — swollen with short‑lived browsers that never learned to share. On the other, a quiet idea in the release notes: reuse idle browsers when the config is unchanged, teach them to keep state, expose a files API, and give every run a session details endpoint so the humans can finally see what the agents are doing.",
+
+  "act3_title": "The Browser That Remembers",
+  "what_why": "With v0.2.0‑beta, the browser stops being disposable hardware and starts acting like a character with memory. Idle instances are reused instead of discarded, the new files API turns scratch data into something you can point to, and the session details endpoint hands operators a clean dossier for every run. Steel isn’t just running Chrome anymore; it’s running a precinct full of browsers that know when to stay, when to leave, and where the evidence lives.",
+
+  "verdict": "They didn’t just cut costs; they gave every browser a badge and a filing cabinet, then asked it to testify on what the agents saw."
+}
