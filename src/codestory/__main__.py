@@ -37,6 +37,7 @@ from codestory.cli import (
     print_success,
     print_warning,
 )
+from codestory.cli.interactive import run_interactive_menu
 from codestory.core import (
     load_config,
     init_repo_config,
@@ -44,6 +45,15 @@ from codestory.core import (
     DatabaseManager,
 )
 from codestory.core.logging import get_logger
+from codestory.core.public_repo import (
+    add_public_repo,
+    clone_repo,
+    fetch_repo,
+    get_public_repo,
+    get_repo_git_dir,
+    list_public_repos,
+    remove_public_repo,
+)
 
 LOGGER = get_logger(__name__)
 
@@ -461,6 +471,105 @@ disown
         print_success(f"Git commit hook installed: {hook_path}")
         return 0
 
+    # ── Public repo management ──────────────────────────────────────────────
+    if getattr(args, "add_public_repo", None):
+        try:
+            repo = add_public_repo(args.add_public_repo)
+            print_success(f"Added public repo: {repo.get('slug')}")
+            print(f"  URL: {repo.get('url')}")
+        except Exception as exc:
+            print_error(f"Failed to add public repo: {exc}")
+            LOGGER.error("Add public repo failed: %s", exc)
+            return 1
+        return 0
+
+    if getattr(args, "remove_public_repo", None):
+        slug = args.remove_public_repo
+        removed = remove_public_repo(slug)
+        if removed:
+            print_success(f"Removed public repo: {slug}")
+        else:
+            print_warning(f"Public repo not found: {slug}")
+        return 0
+
+    if getattr(args, "list_public_repos", False):
+        repos = list_public_repos()
+        if not repos:
+            print_warning("No public repos tracked. Use --add-public-repo <url>.")
+            return 0
+
+        print(f"\n🌐 Tracked public repos ({len(repos)}):")
+        print("  " + "─" * 62)
+        for idx, repo in enumerate(repos, start=1):
+            slug = repo.get("slug", "unknown")
+            status = repo.get("status", "unknown")
+            url = repo.get("url", "")
+            print(f"  {idx:>2}. {slug:<35} [{status}]")
+            print(f"      {url}")
+        print()
+        return 0
+
+    # Public repo pipelines are isolated from local repo pipelines.
+    if getattr(args, "public_repo", None):
+        slug = args.public_repo
+        repo_cfg = get_public_repo(slug)
+
+        if not repo_cfg:
+            print_error(f"Public repo not found: {slug}")
+            print("Use: codestory --list-public-repos")
+            return 1
+
+        git_dir = get_repo_git_dir(slug)
+        if not git_dir.exists():
+            url = repo_cfg.get("url", "")
+            print(f"\n📥 Cloning {slug} ...")
+            if not clone_repo(url, slug):
+                print_error(f"Failed to clone public repo: {slug}")
+                return 1
+        else:
+            LOGGER.info("Public repo git cache already exists for %s", slug)
+
+        # Always attempt to fetch latest updates; this is safe for bare repos.
+        fetch_repo(slug)
+
+        if args.generate_haikus:
+            try:
+                from codestory.pipeline.public_haiku import generate_public_haikus
+
+                generated = generate_public_haikus(
+                    slug=slug,
+                    config=cfg,
+                    progress_callback=_haiku_progress_callback,
+                )
+
+                if generated:
+                    print_success(f"Generated {len(generated)} public haiku(s) for {slug}")
+                else:
+                    print_warning(f"No new public haikus generated for {slug}")
+            except Exception as exc:
+                print_error(f"Public haiku generation failed: {exc}")
+                LOGGER.error("Public haiku generation failed for %s: %s", slug, exc)
+                return 1
+            return 0
+
+        if args.generate_full:
+            print_warning("--generate-full is not implemented yet for CLI flow. Use --generate-haikus for now.")
+            return 0
+
+        print_warning("No public repo action requested. Use --generate-haikus with --public-repo.")
+        return 0
+
+    if getattr(args, "serve_htmx", False):
+        try:
+            from codestory.web.server import start_server
+
+            start_server(port=args.port)
+        except Exception as exc:
+            print_error(f"Failed to start HTMX server: {exc}")
+            LOGGER.error("HTMX server failed: %s", exc)
+            return 1
+        return 0
+
     # Show welcome if no command specified
     if not any([
         args.generate_haikus,
@@ -495,7 +604,7 @@ disown
             pending_count=pending_count,
             verbose=True,
         )
-        return 0
+        return run_interactive_menu(cfg, progress_callback=_haiku_progress_callback)
 
     # Pipeline: generate haikus WITH PROGRESS DISPLAY
     if args.generate_haikus:

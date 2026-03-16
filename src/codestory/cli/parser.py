@@ -36,6 +36,21 @@ examples:
   codestory --list-public-repos
   codestory --public-repo peteromallet-desloppify --generate-haikus
   codestory --serve-htmx --port 8080
+
+Public repo management flow:
+  1) codestory --list-public-repos
+  2) codestory --add-public-repo https://github.com/owner/repo
+  3) codestory --public-repo owner-repo --generate-haikus
+  4) codestory --serve-htmx --port 8080
+
+Viewer quick guide:
+  PyQt6 viewer:
+    codestory --play
+    H/E/N to switch views, SPACE to advance, ←/→ to navigate, Q to quit
+
+  HTMX viewer (public repos):
+    codestory --serve-htmx --port 8080
+    open http://localhost:8080
         """,
     )
 

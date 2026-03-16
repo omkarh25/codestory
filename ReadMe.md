@@ -431,6 +431,24 @@ codestory --public-repo owner-repo --generate-haikus
 
 # List tracked public repos
 codestory --list-public-repos
+
+# Remove a tracked public repo
+codestory --remove-public-repo owner-repo
+
+# Start HTMX server to browse public repos
+codestory --serve-htmx --port 8080
+```
+
+### Command Navigator (Welcome Screen)
+
+Running `codestory` with no flags now shows a clear **Local vs Public** command navigator
+in the welcome screen so you can quickly choose the right flow while keeping all existing
+flags unchanged.
+
+For complete reference and viewer shortcuts, use:
+
+```bash
+codestory --help
 ```
 
 ### Web Interface

@@ -115,6 +115,18 @@ def print_welcome(
      codestory --play                Launch the PyQt6 viewer
      codestory --status              Show database status
      codestory --init                Initialize .codestory folder
+
+  🧭 Command Navigator:
+
+     1) Local repo flow
+        codestory --generate-haikus
+        codestory --generate-episodes
+        codestory --play
+
+     2) Public repo flow
+        codestory --list-public-repos
+        codestory --public-repo owner-repo --generate-haikus
+        codestory --serve-htmx --port 8080
      
   ⚡ NOW Mode (Center of Everything):
   
@@ -135,8 +147,15 @@ def print_welcome(
   🌐 Public Repos (Analyze GitHub repos):
   
      codestory --add-public-repo https://github.com/owner/repo
+     codestory --remove-public-repo owner-repo
      codestory --public-repo owner-repo --generate-haikus
      codestory --list-public-repos
+     codestory --serve-htmx --port 8080
+
+  🌐 HTMX Viewer (Public Repos):
+
+     Start server: codestory --serve-htmx --port 8080
+     Open:         http://localhost:8080
      
   🎬 Viewer Modes (in PyQt6):
   
@@ -152,6 +171,10 @@ def print_welcome(
      L  - Toggle heart flag
      S  - Toggle star flag
      B  - Toggle save flag
+
+  ❓ Help:
+
+     codestory --help                Full flag reference (local + public + htmx)
      
   🔧 Configuration:
   
