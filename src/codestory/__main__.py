@@ -65,6 +65,64 @@ def _step(n: int, total: int, label: str) -> None:
     print("  " + "─" * 50)
 
 
+def _haiku_progress_callback(event: str, message: str, data) -> None:
+    """
+    Callback for haiku generation progress.
+    
+    Args:
+        event: Event type (starting, git, commits, batch, saved, failed_commit, complete, error)
+        message: Human-readable message
+        data: Additional data (commit hash, count, etc.)
+    """
+    icons = {
+        "starting": "🔄",
+        "git": "📜",
+        "commits": "📋",
+        "batch": "📦",
+        "sending": "📤",
+        "received": "📥",
+        "saved": "💾",
+        "failed_commit": "⚠️",
+        "complete": "✅",
+        "error": "❌",
+    }
+    
+    icon = icons.get(event, "•")
+    
+    if event == "starting":
+        print(f"\n{icon} {message}")
+        print("  " + "─" * 40)
+        
+    elif event == "git":
+        print(f"  {icon} {message}")
+        
+    elif event == "commits":
+        print(f"  {icon} {message}")
+        
+    elif event == "batch":
+        print(f"  {icon} {message}")
+        
+    elif event == "sending":
+        print(f"    {icon} {message}")
+        
+    elif event == "received":
+        print(f"    {icon} {message}")
+        
+    elif event == "saved":
+        # Success - green checkmark
+        print(f"    \033[1;32m✓\033[0m {message}")
+        
+    elif event == "failed_commit":
+        # Failure - yellow warning
+        print(f"    \033[1;33m⚠\033[0m {message}")
+        
+    elif event == "complete":
+        print(f"\n{icon} {message}")
+        
+    elif event == "error":
+        print(f"\n{icon} {message}")
+
+
 def run_release_dry_run(cfg: dict, version: str = "v0.1") -> int:
     """
     Interactive Director's Cut preflight wizard.
@@ -439,15 +497,22 @@ disown
         )
         return 0
 
-    # Pipeline: generate haikus
+    # Pipeline: generate haikus WITH PROGRESS DISPLAY
     if args.generate_haikus:
         try:
             from codestory.pipeline.haiku import generate_haikus
-            results = generate_haikus(config=cfg)
-            if results:
-                print_success(f"Generated {len(results)} haiku(s)")
+            
+            # Use the interactive progress callback
+            result = generate_haikus(
+                config=cfg, 
+                progress_callback=_haiku_progress_callback
+            )
+            
+            if result:
+                print_success(f"Generated {len(result)} haiku(s)")
             else:
                 print_warning("No new haikus generated")
+                
         except Exception as exc:
             print_error(f"Haiku generation failed: {exc}")
             LOGGER.error("Haiku generation failed: %s", exc)
@@ -594,11 +659,14 @@ disown
             print("\n🚀 Pushing to remote...")
             print(f"   ✓ Pushed to origin/{cfg.get('branch', 'main')}")
         
-        # Step 4: Generate haiku for the new commit
+        # Step 4: Generate haiku for the new commit (with progress)
         print("\n🎬 Generating haiku for your confession...")
         try:
             from codestory.pipeline.haiku import generate_haikus
-            haiku_results = generate_haikus(config=cfg)
+            haiku_results = generate_haikus(
+                config=cfg,
+                progress_callback=_haiku_progress_callback
+            )
             if haiku_results:
                 print(f"   ✓ Generated {len(haiku_results)} haiku(s)")
             else:
@@ -612,7 +680,6 @@ disown
             try:
                 # Run in background - don't wait
                 import subprocess
-                import subprocess
                 # NOTE: Using subprocess instead of threading to avoid Qt threading issues
                 
                 def run_ytshorts():
@@ -622,6 +689,7 @@ disown
                     except Exception as e:
                         LOGGER.warning("YT Shorts generation failed: %s", e)
                 
+                import threading
                 thread = threading.Thread(target=run_ytshorts)
                 thread.daemon = True
                 thread.start()

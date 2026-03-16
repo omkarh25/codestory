@@ -2,13 +2,19 @@
 Haiku generation pipeline for codeStory.
 
 Reads git commits and generates noir haikus via LLM.
+
+Key features:
+- Hash-based coupling: commit_hash is the permanent identifier
+- Retry logic: failed generations are retried with exponential backoff
+- Progress callbacks: real-time feedback during generation
 """
 
 import json
 import os
 import re
+import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from codestory.core import DatabaseManager, load_config
 from codestory.core.logging import get_logger
@@ -27,6 +33,10 @@ try:
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
+
+
+# Progress callback type
+ProgressCallback = Optional[Callable[[str, str, Any], None]]
 
 
 def build_llm_client(provider: str = "anthropic", model: str = "claude-haiku-4-5-20251001"):
@@ -58,9 +68,11 @@ async def generate_haiku_batch(
     system_prompt: str,
     depth: str = "git_commit",
     repo_path: str = ".",
+    max_retries: int = 2,
+    progress_callback: ProgressCallback = None,
 ) -> List[Dict[str, Any]]:
     """
-    Generate haikus for a batch of commits.
+    Generate haikus for a batch of commits with retry logic.
 
     Args:
         client: AsyncAnthropic client.
@@ -69,9 +81,11 @@ async def generate_haiku_batch(
         system_prompt: Director prompt.
         depth: git_commit or git_diff.
         repo_path: Repository path.
+        max_retries: Maximum retry attempts for failed generations.
+        progress_callback: Optional callback for progress updates.
 
     Returns:
-        List of haiku dicts.
+        List of haiku dicts (may be fewer than commits if some failed permanently).
     """
     commits_payload = []
     for c in commits:
@@ -118,43 +132,94 @@ async def generate_haiku_batch(
         "Commits:\n" + json.dumps(commits_payload, indent=2)
     )
 
+    # Notify progress
+    if progress_callback:
+        progress_callback("sending", f"Sending {len(commits)} commits to LLM", None)
+
     LOGGER.info("Sending haiku batch of %d commits to model=%s", len(commits), model)
 
-    try:
-        response = await client.messages.create(
-            model=model,
-            max_tokens=2000,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_prompt}],
-            temperature=0.8,
-        )
+    # Retry loop with exponential backoff
+    last_error = None
+    for attempt in range(max_retries + 1):
+        try:
+            response = await client.messages.create(
+                model=model,
+                max_tokens=2000,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_prompt}],
+                temperature=0.8,
+            )
 
-        text_block = next(
-            (b for b in response.content if getattr(b, "type", "") == "text"),
-            None,
-        )
-        if text_block is None:
-            LOGGER.error("No text block in LLM response")
-            return []
+            text_block = next(
+                (b for b in response.content if getattr(b, "type", "") == "text"),
+                None,
+            )
+            if text_block is None:
+                LOGGER.error("No text block in LLM response")
+                if attempt < max_retries:
+                    wait_time = 2 ** attempt
+                    LOGGER.info(f"Retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue
+                return []
 
-        raw = text_block.text.strip()
-        raw = re.sub(r"^```[a-z]*\n?", "", raw)
-        raw = re.sub(r"\n?```$", "", raw)
+            raw = text_block.text.strip()
+            raw = re.sub(r"^```[a-z]*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
 
-        haiku_list = json.loads(raw)
-        LOGGER.info("Received %d haikus from LLM", len(haiku_list))
-        return haiku_list
+            haiku_list = json.loads(raw)
+            LOGGER.info("Received %d haikus from LLM", len(haiku_list))
+            
+            # Notify progress
+            if progress_callback:
+                progress_callback("received", f"Received {len(haiku_list)} haikus", len(haiku_list))
+            
+            return haiku_list
 
-    except json.JSONDecodeError as exc:
-        LOGGER.error("Failed to parse haiku JSON: %s", exc)
-        return []
-    except Exception as exc:
-        LOGGER.error("LLM call failed: %s", exc)
-        return []
+        except json.JSONDecodeError as exc:
+            LOGGER.error("Failed to parse haiku JSON: %s", exc)
+            last_error = exc
+            if attempt < max_retries:
+                wait_time = 2 ** attempt
+                LOGGER.info(f"JSON parse error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                time.sleep(wait_time)
+            continue
+        except Exception as exc:
+            LOGGER.error("LLM call failed: %s", exc)
+            last_error = exc
+            if attempt < max_retries:
+                wait_time = 2 ** attempt
+                LOGGER.info(f"LLM error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                time.sleep(wait_time)
+            continue
+
+    # All retries exhausted
+    LOGGER.error("All %d retries exhausted for haiku batch", max_retries)
+    if progress_callback:
+        progress_callback("failed", f"All retries failed: {last_error}", None)
+    return []
 
 
-async def run_haiku_pipeline(config: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Run the haiku generation pipeline."""
+async def run_haiku_pipeline(
+    config: Dict[str, Any],
+    progress_callback: ProgressCallback = None,
+) -> Dict[str, Any]:
+    """
+    Run the haiku generation pipeline with proper hash-based coupling.
+    
+    Key changes from original:
+    - commit_hash is used as the permanent identifier
+    - chronological_index is computed dynamically at render time
+    - Failed generations are tracked and reported
+    - Progress callback provides real-time updates
+
+    Args:
+        config: Configuration dict.
+        progress_callback: Optional callback for progress updates.
+
+    Returns:
+        Dict with keys: 'generated' (list), 'failed' (list), 'total' (int).
+    """
     import asyncio
 
     db_path = config.get("db_path", ".codestory/codestory.db")
@@ -166,6 +231,11 @@ async def run_haiku_pipeline(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     provider = haiku_config.get("provider", "anthropic")
     model = haiku_config.get("model", "claude-haiku-4-5-20251001")
     depth = haiku_config.get("depth", "git_commit")
+    max_retries = haiku_config.get("max_retries", 2)
+
+    # Notify start
+    if progress_callback:
+        progress_callback("starting", "Initializing haiku pipeline", None)
 
     LOGGER.info("Starting haiku pipeline: max=%d, depth=%s", max_per_run, depth)
 
@@ -174,11 +244,17 @@ async def run_haiku_pipeline(config: Dict[str, Any]) -> List[Dict[str, Any]]:
         client = build_llm_client(provider, model)
     except Exception as exc:
         LOGGER.error("Cannot build LLM client: %s", exc)
+        if progress_callback:
+            progress_callback("error", f"Cannot build LLM client: {exc}", None)
         raise
 
     # Open DB
     db = DatabaseManager(db_path)
     processed_hashes = {h["commit_hash"] for h in db.get_all_haikus()}
+
+    # Notify git read
+    if progress_callback:
+        progress_callback("git", "Reading git log", None)
 
     # Get commits
     all_commits = read_git_log(repo_path, limit=500)
@@ -189,50 +265,113 @@ async def run_haiku_pipeline(config: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     if not new_commits:
         LOGGER.info("No new commits to process")
-        return []
+        if progress_callback:
+            progress_callback("complete", "No new commits to process", 0)
+        return {"generated": [], "failed": [], "total": 0}
 
-    # Chronological index map
+    # Notify commits found
+    if progress_callback:
+        progress_callback("commits", f"Found {len(new_commits)} new commits", len(new_commits))
+
+    # Chronological index map - used for display/render order, NOT as primary key
+    # This is computed but commit_hash remains the permanent identifier
     chron_index_map = {c["hash"]: i + 1 for i, c in enumerate(all_commits_reversed)}
 
     # Load prompt
     system_prompt = load_haiku_prompt()
 
     results = []
-    for batch_start in range(0, len(new_commits), batch_size):
+    failed_commits = []
+    
+    total_batches = (len(new_commits) + batch_size - 1) // batch_size
+    
+    for batch_num, batch_start in enumerate(range(0, len(new_commits), batch_size)):
         batch = new_commits[batch_start:batch_start + batch_size]
+        
+        # Notify batch start
+        if progress_callback:
+            progress_callback(
+                "batch", 
+                f"Processing batch {batch_num + 1}/{total_batches}", 
+                batch_num + 1
+            )
 
         haiku_list = await generate_haiku_batch(
-            client, model, batch, system_prompt, depth, repo_path
+            client, model, batch, system_prompt, depth, repo_path,
+            max_retries=max_retries,
+            progress_callback=progress_callback,
         )
 
+        # Map haikus by full_hash for O(1) lookup
         haiku_map = {h.get("full_hash", ""): h for h in haiku_list}
+        returned_hashes = set(haiku_map.keys())
 
         for commit in batch:
-            haiku = haiku_map.get(commit["hash"])
-            if not haiku:
-                continue
+            commit_hash = commit["hash"]
+            haiku = haiku_map.get(commit_hash)
+            
+            if haiku:
+                # Success - save to DB
+                chron_idx = chron_index_map.get(commit_hash, 0)
+                db.save_haiku(commit, haiku, chron_idx)
+                
+                results.append({
+                    "hash": commit_hash,
+                    "short_hash": commit_hash[:7],
+                    "chronological_index": chron_idx,
+                    "title": haiku.get("title", ""),
+                    "commit_msg": commit.get("msg", ""),
+                })
+                
+                if progress_callback:
+                    progress_callback(
+                        "saved", 
+                        f"✓ {commit_hash[:7]}: {haiku.get('title', 'Untitled')[:40]}", 
+                        commit_hash
+                    )
+            else:
+                # Failed - track for retry
+                failed_commits.append({
+                    "hash": commit_hash,
+                    "short_hash": commit_hash[:7],
+                    "msg": commit.get("msg", ""),
+                    "branch": commit.get("branch", "main"),
+                })
+                
+                if progress_callback:
+                    progress_callback(
+                        "failed_commit", 
+                        f"⚠ {commit_hash[:7]}: generation failed", 
+                        commit_hash
+                    )
 
-            chron_idx = chron_index_map.get(commit["hash"], 0)
+    LOGGER.info("Generated %d haikus, %d failed", len(results), len(failed_commits))
+    
+    # Notify completion
+    if progress_callback:
+        progress_callback(
+            "complete", 
+            f"Generated {len(results)} haikus, {len(failed_commits)} failed", 
+            len(results)
+        )
 
-            # Save to DB (which also writes JSON)
-            db.save_haiku(commit, haiku, chron_idx)
-
-            results.append({
-                "hash": commit["hash"],
-                "chronological_index": chron_idx,
-                "title": haiku.get("title", ""),
-            })
-
-    LOGGER.info("Generated %d haikus", len(results))
-    return results
+    return {
+        "generated": results,
+        "failed": failed_commits,
+        "total": len(new_commits),
+    }
 
 
-def generate_haikus(config: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+def generate_haikus(
+    config: Optional[Dict[str, Any]] = None,
+    progress_callback: ProgressCallback = None,
+) -> List[Dict[str, Any]]:
     """
     Generate haikus from git commits.
 
     Args:
         config: Optional config overrides.
+        progress_callback: Optional callback for progress updates.
 
     Returns:
         List of generated haiku dicts.
@@ -243,8 +382,8 @@ def generate_haikus(config: Optional[Dict[str, Any]] = None) -> List[Dict[str, A
 
     try:
         # Create a new event loop to avoid issues with existing loops
-        # This is the safest approach - always create fresh
-        return asyncio.run(run_haiku_pipeline(cfg))
+        result = asyncio.run(run_haiku_pipeline(cfg, progress_callback))
+        return result.get("generated", [])
     except Exception as exc:
         LOGGER.error("Haiku pipeline failed: %s", exc)
         raise
