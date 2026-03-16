@@ -1,7 +1,1 @@
-I want to streamline the cli experience. 
-
-Make it more interactive and engaging. 
-
-Everything is just a pipe-line of commands. 
-
-Show the user every step of the pipeline.cd
+btw codestory is installed in terminal on this machine. Can you add an update command to update the codestory built from github snapshot (I wanna know exactly which hash i'm running). Not sure if need to uninstall and install again on this machine.

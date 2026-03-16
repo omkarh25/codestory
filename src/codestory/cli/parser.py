@@ -30,6 +30,12 @@ examples:
   codestory --reset-db                         # wipe DB
   codestory --init                             # initialize .codestory folder
   codestory --sync                             # repair DB-filesystem sync
+  
+  # Public repo commands
+  codestory --add-public-repo https://github.com/peteromallet/desloppify
+  codestory --list-public-repos
+  codestory --public-repo peteromallet-desloppify --generate-haikus
+  codestory --serve-htmx --port 8080
         """,
     )
 
@@ -137,6 +143,52 @@ examples:
         "--model",
         default=None,
         help="Override LLM model (applies to both haiku + episode)",
+    )
+
+    # ── Public Repos ──────────────────────────────────────────────────────────
+    public_repos = parser.add_argument_group("public repos")
+    public_repos.add_argument(
+        "--add-public-repo",
+        dest="add_public_repo",
+        metavar="URL",
+        help="Add a public GitHub repo (e.g., https://github.com/owner/repo)",
+    )
+    public_repos.add_argument(
+        "--list-public-repos",
+        action="store_true",
+        help="List all tracked public repos",
+    )
+    public_repos.add_argument(
+        "--public-repo",
+        dest="public_repo",
+        metavar="OWNER-REPO",
+        help="Target a specific public repo (e.g., peteromallet-desloppify)",
+    )
+    public_repos.add_argument(
+        "--remove-public-repo",
+        dest="remove_public_repo",
+        metavar="OWNER-REPO",
+        help="Remove a public repo from tracking",
+    )
+    public_repos.add_argument(
+        "--generate-full",
+        action="store_true",
+        help="Generate 10 haikus, 1 episode, 1 release cut for public repo",
+    )
+
+    # ── HTMX Server ────────────────────────────────────────────────────────────
+    htmx_server = parser.add_argument_group("htmx server")
+    htmx_server.add_argument(
+        "--serve-htmx",
+        action="store_true",
+        help="Start HTMX web server for public repos",
+    )
+    htmx_server.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        metavar="PORT",
+        help="Port for HTMX server (default: 8080)",
     )
 
     # ── Utility ────────────────────────────────────────────────────────────────

@@ -408,6 +408,49 @@ codestory.py / src/codestory/__main__.py    ← CLI entry point
 
 ---
 
+## Public Repos
+
+codeStory can analyze and generate haikus for **public GitHub repositories** without cloning them locally. This is useful for exploring interesting repos or creating content about other projects.
+
+### How It Works
+
+1. **Add a public repo** - Clones as a bare git repo to `~/.codestory/public_repos/`
+2. **Generate haikus** - Analyzes commits and creates noir-style case files
+3. **Web interface** - Browse and view generated haikus at `http://localhost:8080`
+
+### CLI Commands
+
+```bash
+# Add a public repo (supports various URL formats)
+codestory --add-public-repo https://github.com/owner/repo
+codestory --add-public-repo github.com/owner/repo
+codestory --add-public-repo owner/repo
+
+# Generate haikus for a public repo
+codestory --public-repo owner-repo --generate-haikus
+
+# List tracked public repos
+codestory --list-public-repos
+```
+
+### Web Interface
+
+The HTMX web server provides a dark cinema interface for browsing public repo haikus:
+
+```
+http://localhost:8080/
+http://localhost:8080/repo/owner-repo
+```
+
+### Storage
+
+- **Git bare repos**: `~/.codestory/public_repos/{owner-repo}/git/`
+- **SQLite DB**: `~/.codestory/public_repos/{owner-repo}/codestory.db`
+- **Haiku JSONs**: `~/.codestory/public_repos/{owner-repo}/haikus/`
+- **Config**: `publicRepos.yaml` in project root
+
+---
+
 ## New CLI Commands
 
 ```bash

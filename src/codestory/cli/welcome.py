@@ -107,25 +107,61 @@ def print_welcome(
     # Quick start guide
     if verbose:
         print("""
-  ═══════════════════════════════════════════════════════════════════
+  ═══════════════════════════════════════════════════════════════════════
   🚀 Quick Start:
   
-     codestory --generate-haikus    Generate haikus from git commits
-     codestory --generate-episodes  Compile haikus into episodes
-     codestory --play               Launch the PyQt6 viewer
-     codestory --status             Show database status
-     codestory --init               Initialize .codestory folder
+     codestory --generate-haikus      Generate haikus from git commits
+     codestory --generate-episodes   Compile haikus into episodes  
+     codestory --play                Launch the PyQt6 viewer
+     codestory --status              Show database status
+     codestory --init                Initialize .codestory folder
+     
+  ⚡ NOW Mode (Center of Everything):
+  
+     codestory --now                 Capture this exact moment as a haiku
      
   📖 More Options:
   
-     codestory --help               Show all options
-     codestory --generate-haikus --depth git_diff  Use full diffs
-     codestory --sync               Repair DB-filesystem sync
+     codestory --help                Show all options
+     codestory --generate-haikus --depth git_diff   Use full diffs (more dramatic)
+     codestory --generate-haikus --max 5           Generate only 5 haikus
+     codestory --generate-episodes                Compile haikus into episodes
+     codestory --generate-storyboard               Generate storyboard JSON
+     codestory --generate-ytshorts                 Render YouTube Shorts
+     codestory --sync                Repair DB-filesystem sync
+     codestory --reset-db            Reset the database
+     codestory --install-hook        Install git commit hook
+     
+  🌐 Public Repos (Analyze GitHub repos):
+  
+     codestory --add-public-repo https://github.com/owner/repo
+     codestory --public-repo owner-repo --generate-haikus
+     codestory --list-public-repos
+     
+  🎬 Viewer Modes (in PyQt6):
+  
+     H  - Haiku chronicle mode
+     E  - Episode mode  
+     N  - Now Moments mode
+     SPACE - Advance to next act/haiku
+     ←/→  - Navigate between haikus/moments
+     G  - Generate new haikus
+     P  - Generate new episode
+     R  - Refresh from DB
+     F  - Toggle fullscreen
+     L  - Toggle heart flag
+     S  - Toggle star flag
+     B  - Toggle save flag
      
   🔧 Configuration:
   
      Edit config.json or .codestory/config.json
      Copy llm.env.example to llm.env and add your API key
+     Supported providers: anthropic, minimax
+     
+  📦 Full Pipeline:
+  
+     codestory --generate-haikus --generate-episodes --generate-ytshorts --play
 """)
 
     # Footer — subtle NOW nudge
