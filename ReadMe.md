@@ -460,6 +460,29 @@ http://localhost:8080/
 http://localhost:8080/repo/owner-repo
 ```
 
+#### Dramatic HTMX Haiku Reveal (Noir Mode)
+
+When you open a repo page, each haiku now appears as a sealed **CASE FILE** card.
+Clicking a card triggers an HTMX fetch with a one-time unseal flow (`hx-trigger="click once"`),
+shows a blinking `[ ACCESSING FILE... ]` indicator, and swaps in a fullscreen cinematic scene.
+
+The loaded haiku now mirrors PyQt pacing using **keyboard progression**:
+- `SPACE` advances stages: **Header → Act I → Act II → Act III → Verdict screen**
+- Typewriter effect: main title + each act title + verdict label
+- Act body text is instant after stage advance
+- Verdict is a standalone full-screen panel (not appended below acts)
+
+HTMX also includes a richer case header block (date, commit, branch, type + noir lexicon, author)
+aligned with the PyQt viewer metadata style.
+
+### Public Interactive Menu Fix (Option 7)
+
+In interactive mode (`codestory` → Public Repo Menu), option **7) Play PyQt viewer** now launches
+the viewer using the **selected public repo DB** (`~/.codestory/public_repos/{slug}/codestory.db`)
+instead of the local repo DB.
+
+This keeps the backend lightweight while making the HTMX interaction feel like a true noir case pull.
+
 ### Storage
 
 - **Git bare repos**: `~/.codestory/public_repos/{owner-repo}/git/`
@@ -536,6 +559,25 @@ current state: TODO files, uncommitted git diff, and recent commits.
 - Full 3-act typewriter + verdict progression
 - `L / S / B` flags work on moments (routed to `toggle_moment_flag`)
 - `launch_app_now(cfg, moment_id)` opens directly to the new moment after generation
+
+---
+
+
+### 2026-03-16
+
+**Feature**: Dramatic HTMX fullscreen haiku presentation for public repo viewer.
+
+**What changed:**
+- Replaced static `<details>` haiku expansion with one-time **Case File Pull** cards.
+- Added HTMX route for full fragment rendering: `/repo/{slug}/haiku/{index}/full`.
+- Added fullscreen noir presentation with scanline-style overlay.
+- Added staged progression with `SPACE`-driven reveal:
+  - Header first, then Act I/II/III
+  - Typewriter for title/act labels, instant body reveal
+  - Separate verdict-only full-screen stage
+- Added richer PyQt-parity metadata header in HTMX case presentation.
+- Kept navigation fluid with HTMX boost behavior on list flows.
+- Fixed Public Repo interactive menu option 7 to open PyQt viewer using selected public repo DB.
 
 ---
 

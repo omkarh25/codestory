@@ -24,6 +24,7 @@ from PyQt6.QtWidgets import (
 )
 
 from codestory.core.logging import get_logger
+from codestory.render.presentation import build_case_file_presentation
 
 LOGGER = get_logger(__name__)
 
@@ -573,32 +574,28 @@ class HaikuPlayerWidget(QWidget):
         self._haiku = haiku
         self._state = HaikuState.IDLE
 
-        commit_hash = haiku.get("commit_hash") or haiku.get("hash", "?")
-        short_hash = commit_hash[:7]
-        branch = haiku.get("branch", "main") or "main"
-        raw_date = haiku.get("commit_date") or haiku.get("date", "")
-        date = _format_datetime(raw_date)
-        commit_msg = haiku.get("commit_msg") or haiku.get("commit_message", "")
-        author = haiku.get("author", "")
-        commit_type = (haiku.get("commit_type") or "other").lower()
-        chron_idx = haiku.get("chronological_index", index)
-
-        self._lbl_meta.setText(f"Case {chron_idx} of {total}  ·  {short_hash}  ·  {branch}  ·  {date}")
+        case = build_case_file_presentation(haiku, index, total)
+        self._lbl_meta.setText(
+            f"Case {case['case_number']} of {case['total_cases']}  ·  "
+            f"{case['short_hash']}  ·  {case['branch']}  ·  {case['formatted_date']}"
+        )
         self._lbl_flags.setText(_flag_badge(haiku))
 
-        self._lbl_title.setText(haiku.get("title", f"CASE FILE — {short_hash}"))
-        self._lbl_subtitle.setText(haiku.get("subtitle", commit_msg[:100]))
+        self._lbl_title.setText(case["title"])
+        subtitle = case["subtitle"] or case["commit_msg"][:100]
+        self._lbl_subtitle.setText(subtitle)
 
-        crime_text = GIT_CRIME_LEXICON_DISPLAY.get(commit_type, commit_type.upper())
         type_display = (
-            f'<span style="color:{TEXT_META_CODE};font-family:monospace;">{commit_type.upper()}</span>'
-            f' — <span style="color:{TEXT_META_VAL};font-style:italic;">{crime_text}</span>'
+            f'<span style="color:{TEXT_META_CODE};font-family:monospace;">{case["commit_type_label"]}</span>'
+            f' — <span style="color:{TEXT_META_VAL};font-style:italic;">{case["crime_text"]}</span>'
         )
-        self._lbl_date.setText(self._meta_html("Date", date))
-        self._lbl_commit.setText(self._meta_html("Commit", commit_msg[:90], monospace=True))
-        self._lbl_branch.setText(self._meta_html("Branch", f'<code style="color:{TEXT_META_CODE};">{branch}</code>'))
+        self._lbl_date.setText(self._meta_html("Date", case["formatted_date"]))
+        self._lbl_commit.setText(self._meta_html("Commit", case["commit_msg"][:90], monospace=True))
+        self._lbl_branch.setText(
+            self._meta_html("Branch", f'<code style="color:{TEXT_META_CODE};">{case["branch"]}</code>')
+        )
         self._lbl_type.setText(f'<span style="color:{TEXT_META_KEY};font-weight:bold;">Type:</span> {type_display}')
-        self._lbl_author.setText(self._meta_html("Author", author))
+        self._lbl_author.setText(self._meta_html("Author", case["author"]))
 
         for w in self._act_widgets:
             w["label"].hide()
@@ -606,7 +603,7 @@ class HaikuPlayerWidget(QWidget):
             w["body"].hide()
             w["body"].setText("")
 
-        LOGGER.debug("HaikuPlayer loaded: #%d %s", chron_idx, short_hash)
+        LOGGER.debug("HaikuPlayer loaded: #%d %s", case["case_number"], case["short_hash"])
 
     def refresh_flags(self) -> None:
         if self._haiku:

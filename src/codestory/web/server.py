@@ -16,7 +16,11 @@ from codestory.core.public_repo import (
     list_public_repos,
     get_repo_db_path,
 )
-from codestory.render.htmx import render_index, render_repo_page
+from codestory.render.htmx import (
+    render_haiku_fullscreen_fragment,
+    render_index,
+    render_repo_page,
+)
 
 LOGGER = get_logger(__name__)
 
@@ -27,7 +31,7 @@ class CodeStoryHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests."""
         # Parse path
-        path = self.path.strip("/")
+        path = self.path.split("?", 1)[0].strip("/")
         
         if path == "" or path == "/":
             # Home page - list all repos
@@ -38,6 +42,55 @@ class CodeStoryHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(html.encode())
             
+        elif path.startswith("repo/") and "/haiku/" in path and path.endswith("/full"):
+            # HTMX haiku fullscreen fragment
+            parts = path.split("/")
+            # Expected: repo/{slug}/haiku/{index}/full
+            if len(parts) < 5 or parts[2] != "haiku" or parts[4] != "full":
+                self.send_error(404, "Invalid haiku route")
+                return
+
+            slug = parts[1]
+            try:
+                haiku_index = int(parts[3])
+            except ValueError:
+                self.send_error(400, "Invalid haiku index")
+                return
+
+            repo = get_public_repo(slug)
+            if not repo:
+                self.send_error(404, f"Repo not found: {slug}")
+                return
+
+            db_path = get_repo_db_path(slug)
+            haikus = []
+            if db_path.exists():
+                try:
+                    db = DatabaseManager(str(db_path))
+                    haikus = db.get_all_haikus()
+                except Exception as e:
+                    LOGGER.warning("Failed to load DB for %s: %s", slug, e)
+                    self.send_error(500, "Failed to load haikus")
+                    return
+
+            if not haikus:
+                self.send_error(404, "No haikus found")
+                return
+            if haiku_index < 0 or haiku_index >= len(haikus):
+                self.send_error(404, f"Haiku index out of range: {haiku_index}")
+                return
+
+            html = render_haiku_fullscreen_fragment(
+                slug=slug,
+                index=haiku_index,
+                total=len(haikus),
+                haiku=haikus[haiku_index],
+            )
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(html.encode())
+
         elif path.startswith("repo/"):
             # Repo detail page
             slug = path.replace("repo/", "").strip("/")
@@ -59,7 +112,7 @@ class CodeStoryHandler(SimpleHTTPRequestHandler):
                     haikus = db.get_all_haikus()
                     episodes = db.get_all_episodes()
                 except Exception as e:
-                    LOGGER.warning(f"Failed to load DB for {slug}: {e}")
+                    LOGGER.warning("Failed to load DB for %s: %s", slug, e)
             
             html = render_repo_page(slug, haikus, episodes)
             self.send_response(200)
@@ -86,17 +139,17 @@ def start_server(port: int = 8080) -> None:
     server_address = ('', port)
     httpd = HTTPServer(server_address, CodeStoryHandler)
     
-    print(f"\n🎭 codeStory HTMX Server")
-    print(f"   ════════════════════════════")
-    print(f"   🌐 http://localhost:{port}")
-    print(f"   📚 Public repos: {len(list_public_repos())}")
-    print(f"   ════════════════════════════")
-    print(f"\n   Press Ctrl+C to stop\n")
+    LOGGER.info("\n🎭 codeStory HTMX Server")
+    LOGGER.info("   ════════════════════════════")
+    LOGGER.info("   🌐 http://localhost:%s", port)
+    LOGGER.info("   📚 Public repos: %d", len(list_public_repos()))
+    LOGGER.info("   ════════════════════════════")
+    LOGGER.info("\n   Press Ctrl+C to stop\n")
     
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\n\n👋 Server stopped.")
+        LOGGER.info("\n\n👋 Server stopped.")
         httpd.shutdown()
 
 

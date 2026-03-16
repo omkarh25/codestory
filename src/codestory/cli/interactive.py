@@ -16,6 +16,7 @@ from codestory.core.public_repo import (
     clone_repo,
     fetch_repo,
     get_public_repo,
+    get_repo_db_path,
     get_repo_git_dir,
     list_public_repos,
     remove_public_repo,
@@ -242,7 +243,25 @@ def _public_menu(
             elif choice == "7":
                 from codestory.viewer.qt_viewer import launch_app
 
-                launch_app(cfg)
+                if not selected_slug:
+                    print_warning("No repo selected. Choose option 4 first.")
+                    continue
+
+                db_path = get_repo_db_path(selected_slug)
+                if not db_path.exists():
+                    print_warning(
+                        f"No database found for {selected_slug}. Generate public haikus first."
+                    )
+                    continue
+
+                viewer_cfg = dict(cfg)
+                viewer_cfg["db_path"] = str(db_path)
+                LOGGER.info(
+                    "Launching PyQt viewer for public repo %s using DB %s",
+                    selected_slug,
+                    db_path,
+                )
+                launch_app(viewer_cfg)
         except Exception as exc:
             LOGGER.error("Interactive public menu action failed: %s", exc)
             print_error(str(exc))
